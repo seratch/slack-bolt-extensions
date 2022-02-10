@@ -1,0 +1,16 @@
+# node / npm stuff
+node_modules/
+package-lock.json
+
+# build products
+dist/
+*.tgz
+
+# coverage
+.nyc_output/
+coverage/
+
+# macOS
+.DS_Store
+
+.idea/
