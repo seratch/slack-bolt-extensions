@@ -1,10 +1,12 @@
+/* eslint-disable import/no-internal-modules */
 /* eslint-disable import/extensions */
 
 import { Installation } from '@slack/oauth';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { assert } from 'chai';
 import { createConnection } from 'typeorm';
-import { SlackAppInstallation, TypeORMInstallationStore } from '../index';
+import { TypeORMInstallationStore } from '../index';
+import SlackAppInstallation from '../entity/SlackAppInstallation';
 import { buildTeamInstallation } from './test-data';
 
 const logger = new ConsoleLogger();

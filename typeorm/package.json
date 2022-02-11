@@ -1,6 +1,6 @@
 {
   "name": "slack-bolt-typeorm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Bolt for JavaScript Installation Store Extension - TypeORM",
   "main": "dist/index.js",
   "scripts": {
