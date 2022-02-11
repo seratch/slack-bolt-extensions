@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-typeorm": "^0.0.2",
+    "slack-bolt-sequelize": "^0.0.2",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },
@@ -72,133 +72,20 @@ settings:
   socket_mode_enabled: true
 ```
 
-##### ormconfig.js
-
-Just to confirm if the InstallationStore works in your local machine, let's use the following simple TypeORM configuration.
-
-```javascript
-const SnakeNamingStrategy = require("typeorm-naming-strategies").SnakeNamingStrategy;
-
-module.exports = {
-  type: "sqlite",
-  database: "./database.sqlite",
-  synchronize: true,
-  keepConnectionAlive: true,
-  logging: true,
-  entities: ["src/entity/**/*.ts"],
-  migrations: ["src/migration/**/*.ts"],
-  cli: {
-    entitiesDir: "src/entity",
-    migrationsDir: "src/migration",
-  },
-  namingStrategy: new SnakeNamingStrategy(),
-};
-```
-
-##### src/entity/SlackAppInstallation.ts
-
-```typescript
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { InstallationEntity } from 'slack-bolt-typeorm';
-
-@Entity()
-export default class SlackAppInstallation implements InstallationEntity {
-  @PrimaryGeneratedColumn()
-  public id?: number;
-
-  @Column({ nullable: true })
-  public clientId?: string;
-
-  @Column()
-  public appId?: string;
-
-  @Column({ nullable: true })
-  public enterpriseId?: string;
-
-  @Column({ nullable: true })
-  public enterpriseName?: string;
-
-  @Column({ nullable: true })
-  public enterpriseUrl?: string;
-
-  @Column({ nullable: true })
-  public teamId?: string;
-
-  @Column({ nullable: true })
-  public teamName?: string;
-
-  @Column({ nullable: true })
-  public botToken?: string;
-
-  @Column({ nullable: true })
-  public botId?: string;
-
-  @Column({ nullable: true })
-  public botUserId?: string;
-
-  @Column({ nullable: true })
-  public botScopes?: string;
-
-  @Column({ nullable: true })
-  public botRefreshToken?: string;
-
-  @Column({ nullable: true })
-  public botTokenExpiresAt?: Date;
-
-  @Column({ nullable: true })
-  public userId?: string;
-
-  @Column({ nullable: true })
-  public userToken?: string;
-
-  @Column({ nullable: true })
-  public userScopes?: string;
-
-  @Column({ nullable: true })
-  public userRefreshToken?: string;
-
-  @Column({ nullable: true })
-  public userTokenExpiresAt?: Date;
-
-  @Column({ nullable: true })
-  public incomingWebhookUrl?: string;
-
-  @Column({ nullable: true })
-  public incomingWebhookChannel?: string;
-
-  @Column({ nullable: true })
-  public incomingWebhookChannelId?: string;
-
-  @Column({ nullable: true })
-  public incomingWebhookConfigurationUrl?: string;
-
-  @Column({ nullable: true })
-  public isEnterpriseInstall?: boolean;
-
-  @Column()
-  public tokenType?: string;
-
-  @Column()
-  public installedAt?: Date;
-}
-```
-
 ##### src/index.ts
 
 ```typescript
-import { createConnection } from 'typeorm';
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
-import { TypeORMInstallationStore } from 'slack-bolt-typeorm';
-import SlackAppInstallation from './entity/SlackAppInstallation';
+import { Sequelize } from 'sequelize';
+import { SequelizeInstallationStore } from 'slack-bolt-sequelize';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
-const installationStore = new TypeORMInstallationStore({
-  connectionProvider: async () => createConnection(),
-  entityFactory: () => new SlackAppInstallation(),
-  entityTarget: SlackAppInstallation,
+const sequelize = new Sequelize('sqlite::memory:');
+const installationStore = new SequelizeInstallationStore({
+  sequelize,
   clientId: process.env.SLACK_CLIENT_ID,
   logger,
 });
