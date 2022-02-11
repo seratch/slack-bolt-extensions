@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.0.2",
+    "slack-bolt-sequelize": "^0.0.3",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },
@@ -51,10 +51,10 @@ You can use the following App Manifest configuration for setting up a new app!
 
 ```yaml
 display_information:
-  name: typeorm-oauth-test-app
+  name: sequelize-oauth-test-app
 features:
   bot_user:
-    display_name: typeorm-oauth-test-app
+    display_name: sequelize-oauth-test-app
 oauth_config:
   redirect_urls:
     - https://xxx.ngrok.io/slack/oauth_redirect

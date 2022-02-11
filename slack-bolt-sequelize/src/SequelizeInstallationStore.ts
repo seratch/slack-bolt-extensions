@@ -8,7 +8,7 @@ import {
   Logger,
 } from '@slack/oauth';
 
-import { Sequelize, DataTypes, Op } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 import SequelizeInstallationStoreArgs from './SequelizeInstallationStoreArgs';
 import SlackAppInstallation from './SlackAppInstallation';
 
@@ -23,6 +23,12 @@ export default class SequelizeInstallationStore implements InstallationStore {
 
   private model: typeof SlackAppInstallation;
 
+  private onStoreInstallation: <M extends SlackAppInstallation> (
+    model: M, installation: Installation) => Promise<void>;
+
+  private onFetchInstallation: <M extends SlackAppInstallation> (
+    model: M, installation: Installation) => Promise<void>;
+
   public constructor(options: SequelizeInstallationStoreArgs) {
     this.sequelize = options.sequelize;
     this.clientId = options.clientId;
@@ -31,49 +37,21 @@ export default class SequelizeInstallationStore implements InstallationStore {
     this.historicalDataEnabled = options.historicalDataEnabled !== undefined ?
       options.historicalDataEnabled : true;
     if (options.model !== undefined) {
+      // If you want to customize the model initialization,
+      // you can do so before passing this options.model to this constructor.
       this.model = options.model;
     } else {
       this.model = SlackAppInstallation;
       this.model.init(
-        {
-          id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          clientId: { type: DataTypes.STRING, allowNull: true },
-          appId: { type: DataTypes.STRING, allowNull: false },
-          enterpriseId: { type: DataTypes.STRING, allowNull: true },
-          enterpriseName: { type: DataTypes.STRING, allowNull: true },
-          enterpriseUrl: { type: DataTypes.STRING, allowNull: true },
-          teamId: { type: DataTypes.STRING, allowNull: true },
-          teamName: { type: DataTypes.STRING, allowNull: true },
-          botToken: { type: DataTypes.STRING, allowNull: true },
-          botId: { type: DataTypes.STRING, allowNull: true },
-          botUserId: { type: DataTypes.STRING, allowNull: true },
-          botScopes: { type: DataTypes.STRING, allowNull: true },
-          botRefreshToken: { type: DataTypes.STRING, allowNull: true },
-          botTokenExpiresAt: { type: DataTypes.DATE, allowNull: true },
-          userId: { type: DataTypes.STRING, allowNull: false },
-          userToken: { type: DataTypes.STRING, allowNull: true },
-          userScopes: { type: DataTypes.STRING, allowNull: true },
-          userRefreshToken: { type: DataTypes.STRING, allowNull: true },
-          userTokenExpiresAt: { type: DataTypes.DATE, allowNull: true },
-          incomingWebhookUrl: { type: DataTypes.STRING, allowNull: true },
-          incomingWebhookChannel: { type: DataTypes.STRING, allowNull: true },
-          incomingWebhookChannelId: { type: DataTypes.STRING, allowNull: true },
-          incomingWebhookConfigurationUrl: {
-            type: DataTypes.STRING,
-            allowNull: true,
-          },
-          isEnterpriseInstall: { type: DataTypes.BOOLEAN, allowNull: false },
-          tokenType: { type: DataTypes.STRING, allowNull: true },
-          installedAt: { type: DataTypes.DATE, allowNull: false },
-        },
+        SlackAppInstallation.buildNewModelAttributes(),
         { sequelize: this.sequelize, modelName: 'slack_app_installation' },
       );
     }
+    this.onStoreInstallation = options.onStoreInstallation !== undefined ?
+      options.onStoreInstallation : async (_e, _i) => {};
+    this.onFetchInstallation = options.onFetchInstallation !== undefined ?
+      options.onFetchInstallation : async (_e, _i) => {};
+
     this.logger.debug(`SequelizeInstallationStore has been initialized (clientId: ${this.clientId}, model: ${this.model})`);
   }
 
@@ -121,6 +99,8 @@ export default class SequelizeInstallationStore implements InstallationStore {
       tokenType: i.tokenType,
       installedAt: new Date(),
     };
+    await this.onStoreInstallation<SlackAppInstallation>(entity as unknown as SlackAppInstallation, i);
+
     if (this.historicalDataEnabled) {
       await this.model.create(entity);
     } else {
@@ -153,18 +133,37 @@ export default class SequelizeInstallationStore implements InstallationStore {
 
     await this.sequelize.sync();
 
+    // If query.userId is present, the latest user associated installation will be fetched
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = this.buildBaseWhereClause(query);
-    const row = await this.model.findOne({
+    const where: any = this.buildFullWhereClause(query);
+    let row = await this.model.findOne({
       where,
       order: [['id', 'DESC']],
       limit: 1,
     });
+    if (query.userId !== undefined) {
+      // Fetch the latest bot data in the table
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const botWhere: any = this.buildBotQuery(query);
+      const botRow = await this.model.findOne({ where: botWhere, order: [['id', 'DESC']], limit: 1 });
+      if (botRow && botRow.botId) {
+        if (row) {
+          row.botId = botRow.botId;
+          row.botRefreshToken = botRow.botRefreshToken;
+          row.botScopes = botRow.botScopes;
+          row.botToken = botRow.botToken;
+          row.botTokenExpiresAt = botRow.botTokenExpiresAt;
+          row.botUserId = botRow.botUserId;
+        } else {
+          row = botRow;
+        }
+      }
+    }
     if (row) {
       logger?.debug(
         `#fetchInstallation found the installation data ${commonLogPart}`,
       );
-      return {
+      const installation: Installation = {
         team: row.teamId ?
           {
             id: row.teamId,
@@ -210,6 +209,9 @@ export default class SequelizeInstallationStore implements InstallationStore {
         isEnterpriseInstall: row.isEnterpriseInstall,
         authVersion: 'v2', // This module does not support v1 installations
       };
+
+      await this.onFetchInstallation<SlackAppInstallation>(row as unknown as SlackAppInstallation, installation);
+      return installation;
     }
     logger?.debug(
       `#fetchInstallation didn't return any installation data ${commonLogPart}`,
@@ -228,7 +230,7 @@ export default class SequelizeInstallationStore implements InstallationStore {
     await this.sequelize.sync();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = this.buildBaseWhereClause(query);
+    const where: any = this.buildFullWhereClause(query);
     const deletionCount = await this.model.destroy({ where });
     logger?.debug(
       `#deleteInstallation deleted ${deletionCount} rows ${commonLogPart}`,
@@ -237,11 +239,20 @@ export default class SequelizeInstallationStore implements InstallationStore {
 
   // eslint-disable-next-line class-methods-use-this
   public async close(): Promise<void> {
-    // TODO
+    await this.sequelize.close();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildBaseWhereClause(query: InstallationQuery<boolean>): any {
+  private buildBotQuery(query: InstallationQuery<boolean>): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = this.buildFullWhereClause(query);
+    // No userId here
+    delete where.userId;
+    return where;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private buildFullWhereClause(query: InstallationQuery<boolean>): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     if (this.clientId !== undefined) {

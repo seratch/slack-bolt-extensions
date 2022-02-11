@@ -25,7 +25,6 @@ describe('Org-wide installation', () => {
     assert.equal(installation?.bot?.token, 'xoxb-XXX');
     assert.equal(installation?.bot?.refreshToken, 'xoxe-1-XXX');
     assert.equal(installation?.bot?.expiresAt, expiresAt);
-    assert.equal(installation?.user.expiresAt, expiresAt);
   }
   function verifyFetchedUserInstallationIsLatestOne(installation: Installation<'v1' | 'v2'>, expiresAt: number) {
     assert.isNotNull(installation);
@@ -79,6 +78,9 @@ describe('Org-wide installation', () => {
       if (botLatest.bot) {
         botLatest.bot.token = 'xoxb-XXX';
         botLatest.bot.refreshToken = 'xoxe-1-XXX';
+        delete botLatest.user.token;
+        delete botLatest.user.refreshToken;
+        delete botLatest.user.expiresAt;
       } else {
         assert.fail('the test data is invalid');
       }
@@ -92,8 +94,9 @@ describe('Org-wide installation', () => {
         userId: 'test-user-id-1',
         isEnterpriseInstall: true,
       };
-      const userInstallation = await installationStore.fetchInstallation(user1Query, logger);
+      let userInstallation = await installationStore.fetchInstallation(user1Query, logger);
       verifyFetchedUserInstallationIsLatestOne(userInstallation, tokenExpiresAt);
+      verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
 
       const botQuery = {
         enterpriseId: 'test-enterprise-id',
@@ -105,14 +108,10 @@ describe('Org-wide installation', () => {
 
       await installationStore.deleteInstallation(user1Query, logger);
 
-      // As the installations including historical ones were deleted,
-      // this fetch method must return nothing.
-      try {
-        await installationStore.fetchInstallation(user1Query, logger);
-        assert.fail('Exception should be thrown here');
-      } catch (e: any) {
-        assert.equal(e.message, 'No installation data found (enterprise_id: test-enterprise-id, team_id: undefined, user_id: test-user-id-1)');
-      }
+      userInstallation = await installationStore.fetchInstallation(user1Query, logger);
+      // userToken no longer exists but bot data should be still alive
+      assert.isNull(userInstallation.user.token);
+      verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
 
       botInstallation = await installationStore.fetchInstallation(botQuery, logger);
       verifyFetchedBotInstallationIsLatestOne(botInstallation, tokenExpiresAt);

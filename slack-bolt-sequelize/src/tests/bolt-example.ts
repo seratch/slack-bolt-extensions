@@ -3,17 +3,51 @@
 /* eslint-disable import/extensions */
 
 import { App } from '@slack/bolt';
+import { Installation } from '@slack/oauth';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
-import { Sequelize } from 'sequelize';
-import { SequelizeInstallationStore } from '../index';
+import { DataTypes, Sequelize } from 'sequelize';
+import { SequelizeInstallationStore, SlackAppInstallation } from '../index';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
 const sequelize = new Sequelize('sqlite::memory:');
-const installationStore = new SequelizeInstallationStore({
+
+class MySlackAppInstallation extends SlackAppInstallation {
+  public memo?: string;
+}
+const modelAttributes = SlackAppInstallation.buildNewModelAttributes();
+// Set custom columns in database
+modelAttributes.memo = { type: DataTypes.STRING, allowNull: true };
+
+MySlackAppInstallation.init(
+  modelAttributes,
+  { sequelize, modelName: 'slack_app_installation' },
+);
+
+/**
+const simplestInstallationStore = new SequelizeInstallationStore({
   sequelize,
   clientId: process.env.SLACK_CLIENT_ID,
+  logger,
+});
+ */
+
+const installationStore = new SequelizeInstallationStore({
+  sequelize,
+  model: MySlackAppInstallation,
+  clientId: process.env.SLACK_CLIENT_ID,
+  onStoreInstallation: async (e: MySlackAppInstallation, i: Installation) => {
+    // You can encrypt/decrypt values and add custom data
+    e.memo = 'This is noted';
+    logger.info(e);
+    logger.info(i);
+  },
+  onFetchInstallation: async (e: MySlackAppInstallation, i: Installation) => {
+    // You can encrypt/decrypt values and add custom data
+    logger.info(e);
+    logger.info(i);
+  },
   logger,
 });
 
