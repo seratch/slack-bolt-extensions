@@ -10,7 +10,5 @@
     "src/**/*",
     ".eslintrc.js",
   ],
-  "exclude": [
-    "types/**/*",
-  ]
+  "exclude": []
 }

@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seratch/slack-bolt-installation-stores.git"
+    "url": "git+https://github.com/seratch/slack-bolt-extensions.git"
   },
   "keywords": [
     "Slack"
@@ -24,9 +24,9 @@
   "author": "Kazuhiro Sera",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/seratch/slack-bolt-installation-stores/issues"
+    "url": "https://github.com/seratch/slack-bolt-extensions/issues"
   },
-  "homepage": "https://github.com/seratch/slack-bolt-installation-stores#readme",
+  "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
   "dependencies": {
     "@slack/logger": "^3.0.0",
     "@slack/oauth": "^2.4.0",
@@ -55,7 +55,6 @@
     "sqlite3": "^4.2.0",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.5.0",
-    "typeorm-naming-strategies": "^2.0.0",
     "typescript": "^4.5.5"
   }
 }
