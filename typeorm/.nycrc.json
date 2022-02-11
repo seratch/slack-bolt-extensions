@@ -3,8 +3,7 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "**/*.spec.ts",
-    "src/test-helpers.ts"
+    "**/*.spec.ts"
   ],
   "reporter": ["lcov"],
   "extension": [

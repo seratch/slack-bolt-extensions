@@ -70,7 +70,7 @@
     "src/**/*",
   ],
   "exclude": [
-    "**/*.spec.ts",
-    "src/test-helpers.ts"
+    "src/entity/*.ts",
+    "src/**/*.spec.ts",
   ]
 }

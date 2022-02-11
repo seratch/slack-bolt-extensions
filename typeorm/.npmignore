@@ -1,1 +1,12 @@
 node_modules/
+dist/entity/
+build/
+ormconfig.*
+*.tgz
+src/
+tsconfig*
+.eslintignore
+.eslintrc.js
+.mocharc.json
+.nycrc.json
+README.md

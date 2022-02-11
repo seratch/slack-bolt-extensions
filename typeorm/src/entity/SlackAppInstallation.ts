@@ -1,9 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { InstallationEntity } from '../index';
 
 @Entity()
-export default class SlackAppInstallation {
+export default class SlackAppInstallation implements InstallationEntity {
   @PrimaryGeneratedColumn()
   public id?: number;
+
+  // this field can be used for mananging multiple Slack apps in this table
+  @Column({ nullable: true })
+  public clientId?: string;
 
   @Column()
   public appId?: string;
