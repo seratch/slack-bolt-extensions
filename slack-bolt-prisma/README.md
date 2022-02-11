@@ -8,7 +8,7 @@
 
 ```json
 {
-  "name": "bolt-sequelize-app",
+  "name": "bolt-prisma-app",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -19,11 +19,12 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.0.2",
+    "slack-bolt-prisma": "^0.0.2",
     "sqlite3": "4.2.0",
-    "sequelize": "^6.16.1"
+    "@prisma/client": "^3.9.2"
   },
   "devDependencies": {
+    "prisma": "^3.9.2",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
   }
@@ -51,10 +52,10 @@ You can use the following App Manifest configuration for setting up a new app!
 
 ```yaml
 display_information:
-  name: typeorm-oauth-test-app
+  name: prisma-oauth-test-app
 features:
   bot_user:
-    display_name: typeorm-oauth-test-app
+    display_name: prisma-oauth-test-app
 oauth_config:
   redirect_urls:
     - https://xxx.ngrok.io/slack/oauth_redirect
