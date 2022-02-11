@@ -1,0 +1,11 @@
+// This config is only used to allow ESLint to use a different include / exclude setting than the actual build
+{
+  // extend the build config to share compilerOptions
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Setting "noEmit" prevents misuses of this config such as using it to produce a build
+    "noEmit": true
+  },
+  "include": ["src/**/*", ".eslintrc.js"],
+  "exclude": []
+}

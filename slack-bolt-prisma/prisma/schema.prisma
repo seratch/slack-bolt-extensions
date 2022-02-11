@@ -1,0 +1,37 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model SlackAppInstallation {
+    id                              Int       @id @default(autoincrement())
+    clientId                        String?
+    appId                           String?
+    enterpriseId                    String?
+    enterpriseName                  String?
+    enterpriseUrl                   String?
+    teamId                          String?
+    teamName                        String?
+    botToken                        String?
+    botId                           String?
+    botUserId                       String?
+    botScopes                       String?
+    botRefreshToken                 String?
+    botTokenExpiresAt               DateTime?
+    userId                          String?
+    userToken                       String?
+    userScopes                      String?
+    userRefreshToken                String?
+    userTokenExpiresAt              DateTime?
+    incomingWebhookUrl              String?
+    incomingWebhookChannel          String?
+    incomingWebhookChannelId        String?
+    incomingWebhookConfigurationUrl String?
+    isEnterpriseInstall             Boolean   @default(false)
+    tokenType                       String    @default("bot")
+    installedAt                     DateTime  @default(now())
+}
