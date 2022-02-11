@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-typeorm": "^0.0.1",
+    "slack-bolt-typeorm": "^0.0.2",
     "sqlite3": "4.2.0",
     "typeorm": "^0.2.41",
     "typeorm-naming-strategies": "^2.0.0"
