@@ -2,6 +2,5 @@
 /* eslint-disable import/extensions */
 
 export { default as InstallationEntity } from './InstallationEntity';
-export { default as SlackAppInstallation } from './entity/SlackAppInstallation';
 export { default as TypeORMInstallationStore } from './TypeORMINstallationStore';
 export { default as TypeORMINstallationStoreArgs } from './TypeORMINstallationStoreArgs';

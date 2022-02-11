@@ -7,6 +7,43 @@
 ##### package.json
 
 ```json
+{
+  "name": "bolt-typeorm-app",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "rm -rf dist/ && tsc && npx ts-node src/index.ts"
+  },
+  "author": "Kazuhiro Sera",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^3.9.0",
+    "slack-bolt-typeorm": "^0.0.1",
+    "sqlite3": "4.2.0",
+    "typeorm": "^0.2.41",
+    "typeorm-naming-strategies": "^2.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  }
+}
+```
+
+##### tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+  },
+  "include": ["src/**/*"]
+}
 ```
 
 ##### Create a new Slack app at api.slack.com/apps
@@ -45,7 +82,7 @@ const SnakeNamingStrategy = require("typeorm-naming-strategies").SnakeNamingStra
 
 module.exports = {
   type: "sqlite",
-  database: "./slack-installation.sqlite",
+  database: "./database.sqlite",
   synchronize: true,
   keepConnectionAlive: true,
   logging: true,
@@ -206,10 +243,10 @@ app.event('app_mention', async ({ event, say }) => {
 #### Run the app
 
 ```
-export SLACK_CLIENT_ID=111.222
-export SLACK_CLIENT_SECRET=xxx
-export SLACK_SIGNING_SECRET=yyy
+export SLACK_CLIENT_ID=
+export SLACK_CLIENT_SECRET=
+export SLACK_SIGNING_SECRET=
 export SLACK_STATE_SECRET=secret
-export SLACK_APP_TOKEN=xapp-zzz
+export SLACK_APP_TOKEN=
 npm start
 ```
