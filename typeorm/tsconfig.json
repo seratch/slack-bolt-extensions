@@ -71,6 +71,5 @@
   ],
   "exclude": [
     "src/entity/*.ts",
-    "src/**/*.spec.ts",
   ]
 }

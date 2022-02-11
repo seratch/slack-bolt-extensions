@@ -4,6 +4,7 @@
   "description": "Bolt for JavaScript Installation Store Extension - TypeORM",
   "main": "dist/index.js",
   "scripts": {
+    "bolt": "npm run prepare && npx ts-node src/tests/bolt-example.ts",
     "prepare": "npm run build",
     "build": "tsc",
     "build:clean": "shx rm -rf ./dist ./coverage ./.nyc_output",
@@ -33,6 +34,7 @@
     "typeorm": "^0.2.41"
   },
   "devDependencies": {
+    "@slack/bolt": "^3.9.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/sinon": "^10.0.11",

@@ -10,13 +10,21 @@ import {
   Logger,
 } from '@slack/oauth';
 
+import { ConsoleLogger } from '@slack/logger';
+
 import { Connection, EntityTarget } from 'typeorm';
 // eslint-disable-next-line import/no-internal-modules
 import InstallationEntity from './InstallationEntity';
 import TypeORMInstallationStoreArgs from './TypeORMInstallationStoreArgs';
 
 export default class TypeORMInstallationStore implements InstallationStore {
-  private connection: Connection;
+  private connectionProvider?: () => Promise<Connection>;
+
+  private connectionCacheEnabled: boolean;
+
+  private connection?: Connection;
+
+  private logger: Logger;
 
   private clientId?: string;
 
@@ -24,15 +32,32 @@ export default class TypeORMInstallationStore implements InstallationStore {
 
   private entityFactory: () => InstallationEntity;
 
+  private customEntityPropertyConfigurator: <T extends InstallationEntity> (
+    entity: T, installation: Installation) => Promise<void>;
+
   private entityTarget: EntityTarget<InstallationEntity>;
 
+  private sortPropertyName: string;
+
   public constructor(options: TypeORMInstallationStoreArgs) {
-    this.clientId = options.clientId;
+    this.connectionProvider = options.connectionProvider;
+    this.connectionCacheEnabled = options.connectionCacheEnabled !== undefined ?
+      options.connectionCacheEnabled : true;
     this.connection = options.connection;
+    if (this.connectionProvider === undefined && this.connection === undefined) {
+      throw new Error('Either connectionProvider or connection is required to initialize this InstallationStore');
+    }
+
+    this.clientId = options.clientId;
+    this.logger = options.logger || new ConsoleLogger();
     this.historicalDataEnabled = options.historicalDataEnabled !== undefined ?
       options.historicalDataEnabled : true;
     this.entityFactory = options.entityFactory;
+    this.customEntityPropertyConfigurator = options.customEntityPropertyConfigurator !== undefined ?
+      options.customEntityPropertyConfigurator : async (_e, _i) => {};
     this.entityTarget = options.entityTarget;
+    this.sortPropertyName = options.sortPropertyName || 'id';
+    this.logger.debug(`TypeORMInstallationStore has been initialized (clientId: ${this.clientId}, entityTarget: ${this.entityTarget})`);
   }
 
   public async storeInstallation<AuthVersion extends 'v1' | 'v2'>(
@@ -65,9 +90,9 @@ export default class TypeORMInstallationStore implements InstallationStore {
         row.clientId = this.clientId;
       }
     }
-    this.setupRow(row, i);
-    await this.connection.manager.save<InstallationEntity>(row);
-
+    await this.setupRow(row, i);
+    const conn = await this.getConnection();
+    await conn.manager.save<InstallationEntity>(row);
     logger?.debug(`#storeInstallation successfully completed ${commonLogPart}`);
   }
 
@@ -143,7 +168,8 @@ export default class TypeORMInstallationStore implements InstallationStore {
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
 
-    await this.connection.manager
+    const conn = await this.getConnection();
+    await conn.manager
       .getRepository(this.entityTarget)
       .createQueryBuilder()
       .delete()
@@ -162,11 +188,35 @@ export default class TypeORMInstallationStore implements InstallationStore {
     );
   }
 
+  public async close(): Promise<void> {
+    if (this.connection !== undefined && this.connection.isConnected) {
+      await this.connection.close();
+    }
+  }
+
   // ------------------------------------------
   // private methods
   // ------------------------------------------
 
-  private setupRow(entity: InstallationEntity, i: Installation) {
+  private async getConnection(): Promise<Connection> {
+    if (this.connection !== undefined) {
+      if (this.connection.isConnected) {
+        return this.connection;
+      }
+      await this.connection.close();
+    }
+    if (this.connectionProvider !== undefined) {
+      return this.connectionProvider().then((conn) => {
+        if (this.connectionCacheEnabled) {
+          this.connection = conn;
+        }
+        return conn;
+      });
+    }
+    throw new Error('Unexpectedly both connection and connectionProvider are missing!');
+  }
+
+  private async setupRow(entity: InstallationEntity, i: Installation) {
     const bothClientIdAbsent = (entity.clientId === null || entity.clientId === undefined) &&
       (this.clientId === undefined || this.clientId === null);
     if (!bothClientIdAbsent && entity.clientId !== this.clientId) {
@@ -210,32 +260,36 @@ export default class TypeORMInstallationStore implements InstallationStore {
     if (entity.installedAt === undefined) {
       entity.installedAt = new Date();
     }
+    await this.customEntityPropertyConfigurator(entity, i);
   }
 
   private async findRow(query: InstallationQuery<boolean>): Promise<InstallationEntity | undefined> {
     const { enterpriseId, teamId, isEnterpriseInstall, userId } = query;
     const alias = 'i';
-    const selectQuery = this.connection.manager
+    const conn = await this.getConnection();
+    const selectQuery = conn.manager
       .getRepository(this.entityTarget)
       .createQueryBuilder(alias)
-      // Note that we don't need to worry about NamingStrategy compatibility here
-      // TypeORM's internal where clause parser converts the property names such as clientId
-      // into the corresponding column names. If you go with snake_case NamingStrategy,
-      // the following where clause will use the naming conventions in SQL statements.
-      .where([
-        (this.clientId ? `${alias}.clientId = :clientId` : `${alias}.clientId is null`),
-        (enterpriseId ? `${alias}.enterpriseId = :enterpriseId` : undefined),
-        (isEnterpriseInstall ? `${alias}.teamId is null` : undefined),
-        (!isEnterpriseInstall && teamId ? `${alias}.teamId = :teamId` : undefined),
-        (userId ? `${alias}.userId = :userId` : undefined),
-      ].filter((a) => a !== undefined).join(' AND '))
+      .where(
+        // Note that we don't need to worry about NamingStrategy compatibility here
+        // TypeORM's internal where clause parser converts the property names such as clientId
+        // into the corresponding column names. If you go with snake_case NamingStrategy,
+        // the following where clause will use the naming conventions in SQL statements.
+        [
+          (this.clientId ? `${alias}.clientId = :clientId` : `${alias}.clientId is null`),
+          (enterpriseId ? `${alias}.enterpriseId = :enterpriseId` : undefined),
+          (isEnterpriseInstall ? `${alias}.teamId is null` : undefined),
+          (!isEnterpriseInstall && teamId ? `${alias}.teamId = :teamId` : undefined),
+          (userId ? `${alias}.userId = :userId` : undefined),
+        ].filter((a) => a !== undefined).join(' AND '),
+      )
       .setParameters({ enterpriseId, teamId, userId, clientId: this.clientId });
 
     if (this.historicalDataEnabled) {
-      return selectQuery.orderBy(`${alias}.installedAt`, 'DESC')
+      return selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC')
         .limit(1)
         .getOne();
     }
-    return selectQuery.getOne();
+    return selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC').getOne();
   }
 }

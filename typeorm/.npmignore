@@ -1,12 +1,15 @@
 node_modules/
 dist/entity/
+dist/tests/
+coverage/
 build/
 ormconfig.*
 *.tgz
 src/
+.nyc_output/
 tsconfig*
 .eslintignore
 .eslintrc.js
 .mocharc.json
 .nycrc.json
-README.md
+*.sqlite
