@@ -1,9 +1,10 @@
 {
   "name": "slack-bolt-sequelize",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Bolt for JavaScript Installation Store Extension - Sequelize",
   "main": "dist/index.js",
   "scripts": {
+    "bolt": "npm run prepare && npx ts-node src/tests/bolt-example.ts",
     "prepare": "npm run build",
     "build": "tsc",
     "build:clean": "shx rm -rf ./dist ./coverage ./.nyc_output",
@@ -27,6 +28,7 @@
   },
   "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
   "dependencies": {
+    "@slack/logger": "^3.0.0",
     "@slack/oauth": "^2.4.0",
     "@types/node": "^17.0.16",
     "sequelize": "^6.16.1"
@@ -36,6 +38,7 @@
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.1.0",
     "@types/sinon": "^10.0.11",
+    "@types/validator": "^13.7.1",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
     "chai": "^4.3.6",
