@@ -38,5 +38,8 @@
     "@slack/oauth": "^2.4.0",
     "@types/node": "^17.0.16",
     "typeorm": "^0.2.41"
+  },
+  "devDependencies": {
+    "typeorm-naming-strategies": "^2.0.0"
   }
 }

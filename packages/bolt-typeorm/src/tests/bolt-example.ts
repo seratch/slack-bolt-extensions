@@ -1,54 +1,21 @@
-/* eslint-disable no-param-reassign */
 /* eslint-disable import/no-internal-modules */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/extensions */
 
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
-import { DataTypes, Sequelize } from 'sequelize';
-import { SequelizeInstallationStore, SlackAppInstallation } from '../index';
+import { createConnection } from 'typeorm';
+import { TypeORMInstallationStore } from '../index';
+import SlackAppInstallation from '../entity/SlackAppInstallation';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
-const sequelize = new Sequelize('sqlite::memory:');
-
-/**
-const simplestInstallationStore = new SequelizeInstallationStore({
-  sequelize,
+const installationStore = new TypeORMInstallationStore({
+  connectionProvider: async () => createConnection(),
+  entityFactory: () => new SlackAppInstallation(),
+  entityTarget: SlackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
-  logger,
-});
- */
-
-class MySlackAppInstallation extends SlackAppInstallation {
-  public memo?: string;
-}
-const modelAttributes = SlackAppInstallation.buildNewModelAttributes();
-// Set custom columns in database
-modelAttributes.memo = { type: DataTypes.STRING, allowNull: true };
-
-MySlackAppInstallation.init(
-  modelAttributes,
-  { sequelize, modelName: 'my_slack_app_installation' },
-);
-
-const installationStore = new SequelizeInstallationStore<MySlackAppInstallation>({
-  sequelize,
-  model: MySlackAppInstallation,
-  clientId: process.env.SLACK_CLIENT_ID,
-  onStoreInstallation: async ({ model, installation }) => {
-    // You can encrypt/decrypt values and add custom data
-    model.memo = 'This is noted';
-    logger.info(model);
-    logger.info(installation);
-  },
-  onFetchInstallation: async ({ model, installation, query }) => {
-    // You can encrypt/decrypt values and add custom data
-    logger.info(model);
-    logger.info(installation);
-    logger.info(query);
-  },
   logger,
 });
 

@@ -4,8 +4,9 @@
 import { Installation } from '@slack/oauth';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { assert } from 'chai';
-import { Sequelize } from 'sequelize';
-import { SequelizeInstallationStore } from '../index';
+import { createConnection } from 'typeorm';
+import { TypeORMInstallationStore } from '../index';
+import SlackAppInstallation from '../entity/SlackAppInstallation';
 import { buildTeamInstallation } from './test-data';
 
 const logger = new ConsoleLogger();
@@ -25,6 +26,7 @@ describe('Workspace-level installation', () => {
     assert.equal(installation?.bot?.token, 'xoxb-XXX');
     assert.equal(installation?.bot?.refreshToken, 'xoxe-1-XXX');
     assert.equal(installation?.bot?.expiresAt, expiresAt);
+    assert.equal(installation?.user.expiresAt, expiresAt);
   }
   function verifyFetchedUserInstallationIsLatestOne(installation: Installation<'v1' | 'v2'>, expiresAt: number) {
     assert.isNotNull(installation);
@@ -38,25 +40,31 @@ describe('Workspace-level installation', () => {
   const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 
   async function runAllTests(historicalDataEnabled: boolean) {
-    const sequelize = new Sequelize('sqlite::memory:');
+    const connection = await createConnection();
     // --------------------------------------------------
     // Create a few installations
     // - two installations by user 1
     // - one installation by user 2
 
-    const installationStore = new SequelizeInstallationStore({
-      sequelize,
+    const installationStore = new TypeORMInstallationStore({
+      connection,
+      entityFactory: () => new SlackAppInstallation(),
+      entityTarget: SlackAppInstallation,
       historicalDataEnabled,
     });
 
-    const appAStore = new SequelizeInstallationStore({
-      sequelize,
+    const appAStore = new TypeORMInstallationStore({
+      connection,
+      entityFactory: () => new SlackAppInstallation(),
+      entityTarget: SlackAppInstallation,
       clientId: 'AAA',
       historicalDataEnabled,
     });
 
-    const appBStore = new SequelizeInstallationStore({
-      sequelize,
+    const appBStore = new TypeORMInstallationStore({
+      connection,
+      entityFactory: () => new SlackAppInstallation(),
+      entityTarget: SlackAppInstallation,
       clientId: 'BBB',
       historicalDataEnabled,
     });
@@ -78,10 +86,6 @@ describe('Workspace-level installation', () => {
       if (botLatest.bot) {
         botLatest.bot.token = 'xoxb-XXX';
         botLatest.bot.refreshToken = 'xoxe-1-XXX';
-        delete botLatest.user.token;
-        delete botLatest.user.refreshToken;
-        delete botLatest.user.scopes;
-        delete botLatest.user.expiresAt;
       } else {
         assert.fail('the test data is invalid');
       }
@@ -95,9 +99,8 @@ describe('Workspace-level installation', () => {
         userId: 'test-user-id-1',
         isEnterpriseInstall: false,
       };
-      let userInstallation = await installationStore.fetchInstallation(user1Query, logger);
+      const userInstallation = await installationStore.fetchInstallation(user1Query, logger);
       verifyFetchedUserInstallationIsLatestOne(userInstallation, tokenExpiresAt);
-      verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
 
       const botQuery = {
         enterpriseId: 'test-enterprise-id',
@@ -109,10 +112,14 @@ describe('Workspace-level installation', () => {
 
       await installationStore.deleteInstallation(user1Query, logger);
 
-      userInstallation = await installationStore.fetchInstallation(user1Query, logger);
-      // userToken no longer exists but bot data should be still alive
-      assert.isNull(userInstallation.user.token);
-      verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
+      // As the installations including historical ones were deleted,
+      // this fetch method must return nothing.
+      try {
+        await installationStore.fetchInstallation(user1Query, logger);
+        assert.fail('Exception should be thrown here');
+      } catch (e: any) {
+        assert.equal(e.message, 'No installation data found (enterprise_id: test-enterprise-id, team_id: test-team-id, user_id: test-user-id-1)');
+      }
 
       botInstallation = await installationStore.fetchInstallation(botQuery, logger);
       verifyFetchedBotInstallationIsLatestOne(botInstallation, tokenExpiresAt);

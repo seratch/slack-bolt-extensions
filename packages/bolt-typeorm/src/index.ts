@@ -1,7 +1,6 @@
 /* eslint-disable import/no-internal-modules */
 /* eslint-disable import/extensions */
 
-export { default as SlackAppInstallation } from './SlackAppInstallation';
-export { default as SequelizeInstallationStore } from './SequelizeInstallationStore';
-export { default as SequelizeInstallationStoreArgs } from './SequelizeInstallationStoreArgs';
-export { default as SequelizeInstallationStoreCallbackArgs } from './SequelizeInstallationStoreCallbackArgs';
+export { default as InstallationEntity } from './InstallationEntity';
+export { default as TypeORMInstallationStore } from './TypeORMINstallationStore';
+export { default as TypeORMINstallationStoreArgs } from './TypeORMINstallationStoreArgs';
