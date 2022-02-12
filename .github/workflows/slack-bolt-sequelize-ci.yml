@@ -20,5 +20,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: cd slack-bolt-sequelize/ && npm test
+    - run: |
+      cd slack-bolt-sequelize/ && \
+      npm i && \
+      npm test
 
