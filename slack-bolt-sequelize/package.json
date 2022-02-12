@@ -6,10 +6,10 @@
   "scripts": {
     "bolt": "npm run prepare && npx ts-node src/tests/bolt-example.ts",
     "prepare": "npm run build",
-    "build": "tsc",
+    "build": "npx tsc",
     "build:clean": "shx rm -rf ./dist ./coverage ./.nyc_output",
-    "lint": "eslint --fix --ext .ts src",
-    "mocha": "TS_NODE_PROJECT=tsconfig.json nyc mocha --config .mocharc.json \"src/**/*.spec.ts\"",
+    "lint": "npx eslint --fix --ext .ts src",
+    "mocha": "TS_NODE_PROJECT=tsconfig.json npx nyc mocha --config .mocharc.json \"src/**/*.spec.ts\"",
     "test": "npm run lint && npm run mocha",
     "coverage": "codecov",
     "watch": "npx nodemon --watch 'src' --ext 'ts' --exec npm run build"
@@ -49,7 +49,7 @@
     "@typescript-eslint/parser": "^5.11.0",
     "chai": "^4.3.6",
     "codecov": "^3.8.3",
-    "eslint": "^8.8.0",
+    "eslint": "^8.9.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^16.1.0",
     "eslint-plugin-jsdoc": "^37.8.2",
