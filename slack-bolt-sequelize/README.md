@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.0.3",
+    "slack-bolt-sequelize": "^0.0.4",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },

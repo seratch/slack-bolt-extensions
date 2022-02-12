@@ -9,10 +9,11 @@ import {
 } from '@slack/oauth';
 
 import { Sequelize, Op } from 'sequelize';
-import SequelizeInstallationStoreArgs from './SequelizeInstallationStoreArgs';
 import SlackAppInstallation from './SlackAppInstallation';
+import SequelizeInstallationStoreArgs from './SequelizeInstallationStoreArgs';
+import SequelizeInstallationStoreCallbackArgs from './SequelizeInstallationStoreCallbackArgs';
 
-export default class SequelizeInstallationStore implements InstallationStore {
+export default class SequelizeInstallationStore<M extends SlackAppInstallation> implements InstallationStore {
   private sequelize: Sequelize;
 
   private clientId?: string;
@@ -23,13 +24,15 @@ export default class SequelizeInstallationStore implements InstallationStore {
 
   private model: typeof SlackAppInstallation;
 
-  private onStoreInstallation: <M extends SlackAppInstallation> (
-    model: M, installation: Installation) => Promise<void>;
+  private onStoreInstallation: (
+    args: SequelizeInstallationStoreCallbackArgs<M>,
+  ) => Promise<void>;
 
-  private onFetchInstallation: <M extends SlackAppInstallation> (
-    model: M, installation: Installation) => Promise<void>;
+  private onFetchInstallation: (
+    args: SequelizeInstallationStoreCallbackArgs<M>,
+  ) => Promise<void>;
 
-  public constructor(options: SequelizeInstallationStoreArgs) {
+  public constructor(options: SequelizeInstallationStoreArgs<M>) {
     this.sequelize = options.sequelize;
     this.clientId = options.clientId;
     this.logger = options.logger !== undefined ?
@@ -48,11 +51,11 @@ export default class SequelizeInstallationStore implements InstallationStore {
       );
     }
     this.onStoreInstallation = options.onStoreInstallation !== undefined ?
-      options.onStoreInstallation : async (_e, _i) => {};
+      options.onStoreInstallation : async (_) => {};
     this.onFetchInstallation = options.onFetchInstallation !== undefined ?
-      options.onFetchInstallation : async (_e, _i) => {};
+      options.onFetchInstallation : async (_) => {};
 
-    this.logger.debug(`SequelizeInstallationStore has been initialized (clientId: ${this.clientId}, model: ${this.model})`);
+    this.logger.debug(`SequelizeInstallationStore has been initialized (clientId: ${this.clientId}, model: ${this.model.name})`);
   }
 
   public async storeInstallation<AuthVersion extends 'v1' | 'v2'>(
@@ -99,7 +102,11 @@ export default class SequelizeInstallationStore implements InstallationStore {
       tokenType: i.tokenType,
       installedAt: new Date(),
     };
-    await this.onStoreInstallation<SlackAppInstallation>(entity as unknown as SlackAppInstallation, i);
+    await this.onStoreInstallation({
+      model: entity as unknown as M,
+      installation: i,
+      logger: this.logger,
+    });
 
     if (this.historicalDataEnabled) {
       await this.model.create(entity);
@@ -210,7 +217,12 @@ export default class SequelizeInstallationStore implements InstallationStore {
         authVersion: 'v2', // This module does not support v1 installations
       };
 
-      await this.onFetchInstallation<SlackAppInstallation>(row as unknown as SlackAppInstallation, installation);
+      await this.onFetchInstallation({
+        logger: this.logger,
+        model: row as unknown as M,
+        installation,
+        query,
+      });
       return installation;
     }
     logger?.debug(

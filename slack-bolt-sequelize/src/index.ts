@@ -4,3 +4,4 @@
 export { default as SlackAppInstallation } from './SlackAppInstallation';
 export { default as SequelizeInstallationStore } from './SequelizeInstallationStore';
 export { default as SequelizeInstallationStoreArgs } from './SequelizeInstallationStoreArgs';
+export { default as SequelizeInstallationStoreCallbackArgs } from './SequelizeInstallationStoreCallbackArgs';

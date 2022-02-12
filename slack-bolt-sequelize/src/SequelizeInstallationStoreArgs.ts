@@ -1,14 +1,18 @@
 import { Logger } from '@slack/logger';
-import { Installation } from '@slack/oauth';
 import { Sequelize } from 'sequelize';
 import SlackAppInstallation from './SlackAppInstallation';
+import SequelizeInstallationStoreCallbackArgs from './SequelizeInstallationStoreCallbackArgs';
 
-export default interface SequelizeInstallationStoreArgs {
+export default interface SequelizeInstallationStoreArgs<M extends SlackAppInstallation> {
   sequelize: Sequelize;
   clientId?: string;
   model?: typeof SlackAppInstallation;
   historicalDataEnabled?: boolean;
-  onStoreInstallation?: <M extends SlackAppInstallation> (model: M, installation: Installation) => Promise<void>;
-  onFetchInstallation?: <M extends SlackAppInstallation> (model: M, installation: Installation) => Promise<void>;
+  onStoreInstallation?: (
+    args: SequelizeInstallationStoreCallbackArgs<M>
+  ) => Promise<void>;
+  onFetchInstallation?: (
+    args: SequelizeInstallationStoreCallbackArgs<M>
+  ) => Promise<void>;
   logger?: Logger,
 }

@@ -1,9 +1,9 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable import/no-internal-modules */
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable import/extensions */
 
 import { App } from '@slack/bolt';
-import { Installation } from '@slack/oauth';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { DataTypes, Sequelize } from 'sequelize';
 import { SequelizeInstallationStore, SlackAppInstallation } from '../index';
@@ -12,6 +12,14 @@ const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
 const sequelize = new Sequelize('sqlite::memory:');
+
+/**
+const simplestInstallationStore = new SequelizeInstallationStore({
+  sequelize,
+  clientId: process.env.SLACK_CLIENT_ID,
+  logger,
+});
+ */
 
 class MySlackAppInstallation extends SlackAppInstallation {
   public memo?: string;
@@ -22,31 +30,24 @@ modelAttributes.memo = { type: DataTypes.STRING, allowNull: true };
 
 MySlackAppInstallation.init(
   modelAttributes,
-  { sequelize, modelName: 'slack_app_installation' },
+  { sequelize, modelName: 'my_slack_app_installation' },
 );
 
-/**
-const simplestInstallationStore = new SequelizeInstallationStore({
-  sequelize,
-  clientId: process.env.SLACK_CLIENT_ID,
-  logger,
-});
- */
-
-const installationStore = new SequelizeInstallationStore({
+const installationStore = new SequelizeInstallationStore<MySlackAppInstallation>({
   sequelize,
   model: MySlackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
-  onStoreInstallation: async (e: MySlackAppInstallation, i: Installation) => {
+  onStoreInstallation: async ({ model, installation }) => {
     // You can encrypt/decrypt values and add custom data
-    e.memo = 'This is noted';
-    logger.info(e);
-    logger.info(i);
+    model.memo = 'This is noted';
+    logger.info(model);
+    logger.info(installation);
   },
-  onFetchInstallation: async (e: MySlackAppInstallation, i: Installation) => {
+  onFetchInstallation: async ({ model, installation, query }) => {
     // You can encrypt/decrypt values and add custom data
-    logger.info(e);
-    logger.info(i);
+    logger.info(model);
+    logger.info(installation);
+    logger.info(query);
   },
   logger,
 });

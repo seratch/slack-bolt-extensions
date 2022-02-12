@@ -1,6 +1,6 @@
 {
   "name": "slack-bolt-sequelize",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Bolt for JavaScript Installation Store Extension - Sequelize",
   "main": "dist/index.js",
   "scripts": {
@@ -19,7 +19,13 @@
     "url": "git+https://github.com/seratch/slack-bolt-extensions.git"
   },
   "keywords": [
-    "Slack"
+    "Sequelize",
+    "OAuth",
+    "Bolt",
+    "Slack",
+    "Slack Platform",
+    "Slack Bot",
+    "Slack API"
   ],
   "author": "Kazuhiro Sera",
   "license": "MIT",
