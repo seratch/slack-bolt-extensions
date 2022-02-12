@@ -1,0 +1,14 @@
+node_modules/
+dist/tests/
+coverage/
+build/
+ormconfig.*
+*.tgz
+src/
+.nyc_output/
+tsconfig*
+.eslintignore
+.eslintrc.js
+.mocharc.json
+.nycrc.json
+*.sqlite
