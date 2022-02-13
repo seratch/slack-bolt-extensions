@@ -1,6 +1,6 @@
 {
     "name": "slack-bolt-prisma",
-    "version": "0.1.1",
+    "version": "0.1.3",
     "description": "Bolt for JavaScript Installation Store Extension - Prisma",
     "main": "dist/index.js",
     "scripts": {
