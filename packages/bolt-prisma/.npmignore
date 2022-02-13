@@ -12,3 +12,5 @@ tsconfig*
 .mocharc.json
 .nycrc.json
 *.sqlite
+.env*
+lerna.json
