@@ -58,3 +58,13 @@ app.event('app_mention', async ({ event, say }) => {
   await app.start();
   logger.info('⚡️ Bolt app is running!');
 })();
+
+async function errorHandler(args: any) { process.exit(); }
+process.on('SIGINT', async (args) => await errorHandler(args));
+process.on('SIGUSR1', async (args) => await errorHandler(args));
+process.on('SIGUSR2', async (args) => await errorHandler(args));
+process.on('uncaughtException', async (args) => await errorHandler(args));
+process.on('exit', async (code) => {
+  await installationStore.close();
+  process.exit(code);
+});
