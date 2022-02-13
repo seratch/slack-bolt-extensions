@@ -23,8 +23,18 @@ import { App } from '@slack/bolt';
 import { PrismaClient } from '@prisma/client';
 import { PrismaInstallationStore } from 'slack-bolt-prisma';
 
+const prismaClient = new PrismaClient({
+  log: [
+    {
+      emit: 'stdout',
+      level: 'query',
+    },
+  ],
+});
 const installationStore = new PrismaInstallationStore({
-  prismaClient: new PrismaClient(),
+  // The name `slackAppInstallation` can be different
+  // if you use a different name in your Prisma schema
+  prismaTable: prismaClient.slackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
 });
 const app = new App({
@@ -36,9 +46,24 @@ const app = new App({
   installationStore,
 });
 
+app.event('app_mention', async ({ event, say }) => {
+  await say({
+    text: `<@${event.user}> Hi there :wave:`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `<@${event.user}> Hi there :wave:`,
+        },
+      },
+    ],
+  });
+});
+
 (async () => {
   await app.start();
-  logger.info('⚡️ Bolt app is running!');
+  console.log('⚡️ Bolt app is running!');
 })();
 ```
 
