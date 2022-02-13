@@ -112,7 +112,7 @@ code . # Open the project in Visual Studio Code
 
 #### Publish the packages
 
-We release all the packages at a time even if some of the packages do not have any changes.
+For publishing the packages, we always use `lerna publish` command.
 
 ```bash
 npx lerna bootstrap
