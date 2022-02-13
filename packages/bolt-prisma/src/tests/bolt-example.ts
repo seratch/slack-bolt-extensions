@@ -19,9 +19,19 @@ const prismaClient = new PrismaClient({
   ],
 });
 const installationStore = new PrismaInstallationStore({
-  prismaClient,
+  prismaTable: prismaClient.mySlackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
   logger,
+  onFetchInstallation: async ({ query, installation }) => {
+    logger.info(query);
+    logger.info(installation);
+  },
+  onStoreInstallation: async ({ prismaInput, installation }) => {
+    logger.info(installation);
+    logger.info(prismaInput);
+    // eslint-disable-next-line no-param-reassign
+    prismaInput.memo = 'test';
+  },
 });
 
 const app = new App({
@@ -58,19 +68,3 @@ app.event('app_mention', async ({ event, say }) => {
   await app.start();
   logger.info('⚡️ Bolt app is running!');
 })();
-
-// // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// async function processExistHandler(args: any) {
-//   logger.info(`processExistHandler args: ${args}`);
-//   // eslint-disable-next-line node/no-process-exit
-//   process.exit();
-// }
-// process.on('SIGINT', async (args) => processExistHandler(args));
-// process.on('SIGUSR1', async (args) => processExistHandler(args));
-// process.on('SIGUSR2', async (args) => processExistHandler(args));
-// process.on('uncaughtException', async (args) => processExistHandler(args));
-// process.on('exit', async (code) => {
-//   await installationStore.close();
-//   // eslint-disable-next-line node/no-process-exit
-//   process.exit(code);
-// });

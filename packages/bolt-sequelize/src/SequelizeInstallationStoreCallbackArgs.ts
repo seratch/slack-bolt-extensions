@@ -5,6 +5,6 @@ import SlackAppInstallation from './SlackAppInstallation';
 export default interface SequelizeInstallationStoreCallbackArgs<M extends SlackAppInstallation> {
   model: M;
   installation: Installation;
-  logger: Logger,
+  logger: Logger;
   query?: InstallationQuery<boolean>;
 }

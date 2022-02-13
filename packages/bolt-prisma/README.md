@@ -86,32 +86,36 @@ datasource db {
 }
 
 model SlackAppInstallation {
+    @@map("slack_app_installation")
+
     id                              Int       @id @default(autoincrement())
-    clientId                        String?
-    appId                           String?
-    enterpriseId                    String?
-    enterpriseName                  String?
-    enterpriseUrl                   String?
-    teamId                          String?
-    teamName                        String?
-    botToken                        String?
-    botId                           String?
-    botUserId                       String?
-    botScopes                       String?
-    botRefreshToken                 String?
-    botTokenExpiresAt               DateTime?
-    userId                          String?
-    userToken                       String?
-    userScopes                      String?
-    userRefreshToken                String?
-    userTokenExpiresAt              DateTime?
-    incomingWebhookUrl              String?
-    incomingWebhookChannel          String?
-    incomingWebhookChannelId        String?
-    incomingWebhookConfigurationUrl String?
-    isEnterpriseInstall             Boolean   @default(false)
-    tokenType                       String    @default("bot")
-    installedAt                     DateTime  @default(now())
+    clientId                        String?   @map("client_id")
+    appId                           String?   @map("app_id")
+    enterpriseId                    String?   @map("enterprise_id")
+    enterpriseName                  String?   @map("enterprise_name")
+    enterpriseUrl                   String?   @map("enterprise_url")
+    teamId                          String?   @map("team_id")
+    teamName                        String?   @map("team_name")
+    botToken                        String?   @map("bot_token")
+    botId                           String?   @map("bot_id")
+    botUserId                       String?   @map("bot_user_id")
+    botScopes                       String?   @map("bot_scopes")
+    botRefreshToken                 String?   @map("bot_refresh_token")
+    botTokenExpiresAt               DateTime? @map("bot_token_expires_at")
+    userId                          String?   @map("user_id")
+    userToken                       String?   @map("user_token")
+    userScopes                      String?   @map("user_scopes")
+    userRefreshToken                String?   @map("user_refresh_token")
+    userTokenExpiresAt              DateTime? @map("user_token_expires_at")
+    incomingWebhookUrl              String?   @map("incoming_webhook_url")
+    incomingWebhookChannel          String?   @map("incoming_webhook_channel")
+    incomingWebhookChannelId        String?   @map("incoming_webhook_channel_id")
+    incomingWebhookConfigurationUrl String?   @map("incoming_webhook_configuration_url")
+    isEnterpriseInstall             Boolean   @default(false) @map("is_enterprise_install")
+    tokenType                       String    @default("bot") @map("token_type")
+    installedAt                     DateTime  @default(now()) @map("installed_at")
+    // This is an example custom property
+    memo                            String?
 }
 ```
 
@@ -142,7 +146,9 @@ const prismaClient = new PrismaClient({
   ],
 });
 const installationStore = new PrismaInstallationStore({
-  prismaClient,
+  // The name `slackAppInstallation` can be different
+  // if you use a different name in your Prisma schema
+  prismaTable: prismaClient.slackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
   logger,
 });
@@ -192,4 +198,5 @@ export SLACK_SIGNING_SECRET=
 export SLACK_STATE_SECRET=secret
 export SLACK_APP_TOKEN=
 npm start
+# Visit https://{your public domain}/slack/install
 ```

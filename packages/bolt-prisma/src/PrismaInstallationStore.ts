@@ -10,9 +10,13 @@ import {
 } from '@slack/oauth';
 
 import PrismaInstallationStoreArgs from './PrismaInstallationStoreArgs';
+import { StoreInstallationCallbackArgs, FetchInstallationCallbackArgs } from './PrismaInstallationStoreCallbackArgs';
 
 export default class PrismaInstallationStore implements InstallationStore {
-  private prismaClient: PrismaClient;
+  private prismaClient?: PrismaClient;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private prismaTable: any;
 
   private clientId?: string;
 
@@ -20,13 +24,23 @@ export default class PrismaInstallationStore implements InstallationStore {
 
   private historicalDataEnabled: boolean;
 
+  private onFetchInstallation: (args: FetchInstallationCallbackArgs) => Promise<void>;
+
+  private onStoreInstallation: (args: StoreInstallationCallbackArgs) => Promise<void>;
+
   public constructor(options: PrismaInstallationStoreArgs) {
     this.prismaClient = options.prismaClient;
+    this.prismaTable = options.prismaTable;
     this.clientId = options.clientId;
     this.logger = options.logger !== undefined ?
       options.logger : new ConsoleLogger();
     this.historicalDataEnabled = options.historicalDataEnabled !== undefined ?
       options.historicalDataEnabled : true;
+    this.onFetchInstallation = options.onFetchInstallation !== undefined ?
+      options.onFetchInstallation : async (_) => {};
+    this.onStoreInstallation = options.onStoreInstallation !== undefined ?
+      options.onStoreInstallation : async (_) => {};
+
     this.logger.debug(`PrismaInstallationStore has been initialized (clientId: ${this.clientId})`);
   }
 
@@ -56,14 +70,14 @@ export default class PrismaInstallationStore implements InstallationStore {
       botScopes: i.bot?.scopes?.join(','),
       botRefreshToken: i.bot?.refreshToken,
       botTokenExpiresAt: i.bot?.expiresAt ?
-        new Date(i.bot.expiresAt) :
+        new Date(i.bot.expiresAt as number * 1000) :
         undefined,
       userId: i.user.id,
       userToken: i.user.token,
       userScopes: i.user.scopes?.join(','),
       userRefreshToken: i.user.refreshToken,
       userTokenExpiresAt: i.user?.expiresAt ?
-        new Date(i.user.expiresAt) :
+        new Date(i.user.expiresAt as number * 1000) :
         undefined,
       incomingWebhookUrl: i.incomingWebhook?.url,
       incomingWebhookChannel: i.incomingWebhook?.channel,
@@ -74,25 +88,35 @@ export default class PrismaInstallationStore implements InstallationStore {
       installedAt: new Date(),
     };
 
-    // TODO
-
-    const table = this.prismaClient.slackAppInstallation;
     if (this.historicalDataEnabled) {
-      await table.create({ data: entity });
+      await this.onStoreInstallation({
+        prismaInput: entity,
+        installation: i,
+        logger: this.logger,
+      });
+      await this.prismaTable.create({ data: entity });
     } else {
-      const existingRow = await this.prismaClient.slackAppInstallation.findFirst({
-        where: this.buildFullWhereClause({
-          enterpriseId,
-          teamId,
-          userId,
-          isEnterpriseInstall,
-        }),
+      const where = this.buildFullWhereClause({
+        enterpriseId,
+        teamId,
+        userId,
+        isEnterpriseInstall,
+      });
+      const existingRow = await this.prismaTable.findFirst({
+        where,
         select: { id: true },
       });
+      await this.onStoreInstallation({
+        prismaInput: entity,
+        installation: i,
+        logger: this.logger,
+        query: where,
+        idToUpdate: existingRow?.id,
+      });
       if (existingRow) {
-        await table.update({ data: entity, where: { id: existingRow.id } });
+        await this.prismaTable.update({ data: entity, where: { id: existingRow.id } });
       } else {
-        await table.create({ data: entity });
+        await this.prismaTable.create({ data: entity });
       }
     }
     logger?.debug(`#storeInstallation successfully completed ${commonLogPart}`);
@@ -107,14 +131,14 @@ export default class PrismaInstallationStore implements InstallationStore {
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#fetchInstallation starts ${commonLogPart}`);
 
-    let row = await this.prismaClient.slackAppInstallation.findFirst({
+    let row = await this.prismaTable.findFirst({
       where: this.buildFullWhereClause(query),
       orderBy: [{ id: 'desc' }],
       take: 1,
     });
     if (query.userId !== undefined) {
       // Fetch the latest bot data in the table
-      const botRow = await this.prismaClient.slackAppInstallation.findFirst({
+      const botRow = await this.prismaTable.findFirst({
         where: this.buildBotQuery(query),
         orderBy: [{ id: 'desc' }],
         take: 1,
@@ -155,7 +179,7 @@ export default class PrismaInstallationStore implements InstallationStore {
           id: row.userId!,
           token: row.userToken || undefined,
           refreshToken: row.userRefreshToken || undefined,
-          expiresAt: row.userTokenExpiresAt?.getTime(),
+          expiresAt: row.userTokenExpiresAt ? row.userTokenExpiresAt.getTime() / 1000 : undefined,
           scopes: row.userScopes?.split(','),
         },
         bot:
@@ -165,7 +189,7 @@ export default class PrismaInstallationStore implements InstallationStore {
                 userId: row.botUserId,
                 token: row.botToken,
                 refreshToken: row.botRefreshToken || undefined,
-                expiresAt: row.botTokenExpiresAt?.getTime(),
+                expiresAt: row.botTokenExpiresAt ? row.botTokenExpiresAt.getTime() / 1000 : undefined,
                 scopes: row.botScopes?.split(',') || [],
               } :
               undefined,
@@ -182,7 +206,11 @@ export default class PrismaInstallationStore implements InstallationStore {
         isEnterpriseInstall: row.isEnterpriseInstall,
         authVersion: 'v2', // This module does not support v1 installations
       };
-      // TODO
+      await this.onFetchInstallation({
+        query,
+        installation,
+        logger: this.logger,
+      });
       return installation;
     }
 
@@ -201,7 +229,7 @@ export default class PrismaInstallationStore implements InstallationStore {
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
 
-    const deleted = await this.prismaClient.slackAppInstallation.deleteMany({
+    const deleted = await this.prismaTable.deleteMany({
       where: this.buildFullWhereClause(query),
     });
 
@@ -212,7 +240,7 @@ export default class PrismaInstallationStore implements InstallationStore {
 
   // eslint-disable-next-line class-methods-use-this
   public async close(): Promise<void> {
-    await this.prismaClient.$disconnect();
+    await this.prismaClient?.$disconnect();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
