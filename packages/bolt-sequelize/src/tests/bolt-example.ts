@@ -49,6 +49,9 @@ const installationStore = new SequelizeInstallationStore<MySlackAppInstallation>
     logger.info(installation);
     logger.info(query);
   },
+  onDeleteInstallation: async ({ query }) => {
+    logger.info(query);
+  },
   logger,
 });
 

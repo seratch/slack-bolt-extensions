@@ -11,7 +11,7 @@ import {
 import { Sequelize, Op } from 'sequelize';
 import SlackAppInstallation from './SlackAppInstallation';
 import SequelizeInstallationStoreArgs from './SequelizeInstallationStoreArgs';
-import SequelizeInstallationStoreCallbackArgs from './SequelizeInstallationStoreCallbackArgs';
+import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './SequelizeInstallationStoreCallbackArgs';
 
 export default class SequelizeInstallationStore<M extends SlackAppInstallation> implements InstallationStore {
   private sequelize: Sequelize;
@@ -24,13 +24,11 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
 
   private model: typeof SlackAppInstallation;
 
-  private onStoreInstallation: (
-    args: SequelizeInstallationStoreCallbackArgs<M>,
-  ) => Promise<void>;
+  private onStoreInstallation: (args: StoreInstallationStoreCallbackArgs<M>) => Promise<void>;
 
-  private onFetchInstallation: (
-    args: SequelizeInstallationStoreCallbackArgs<M>,
-  ) => Promise<void>;
+  private onFetchInstallation: (args: FetchInstallationStoreCallbackArgs<M>) => Promise<void>;
+
+  private onDeleteInstallation: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
 
   public constructor(options: SequelizeInstallationStoreArgs<M>) {
     this.sequelize = options.sequelize;
@@ -54,6 +52,8 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
       options.onStoreInstallation : async (_) => {};
     this.onFetchInstallation = options.onFetchInstallation !== undefined ?
       options.onFetchInstallation : async (_) => {};
+    this.onDeleteInstallation = options.onDeleteInstallation !== undefined ?
+      options.onDeleteInstallation : async (_) => {};
 
     this.logger.debug(`SequelizeInstallationStore has been initialized (clientId: ${this.clientId}, model: ${this.model.name})`);
   }
@@ -102,23 +102,28 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
       tokenType: i.tokenType,
       installedAt: new Date(),
     };
-    await this.onStoreInstallation({
-      model: entity as unknown as M,
-      installation: i,
-      logger: this.logger,
-    });
 
     if (this.historicalDataEnabled) {
+      await this.onStoreInstallation({
+        model: entity as unknown as M,
+        installation: i,
+        logger: this.logger,
+      });
       await this.model.create(entity);
     } else {
-      const [count] = await this.model.update(entity, {
-        where: this.buildFullWhereClause({
-          enterpriseId,
-          teamId,
-          userId,
-          isEnterpriseInstall,
-        }),
+      const where = this.buildFullWhereClause({
+        enterpriseId,
+        teamId,
+        userId,
+        isEnterpriseInstall,
       });
+      await this.onStoreInstallation({
+        model: entity as unknown as M,
+        installation: i,
+        logger: this.logger,
+        query: where,
+      });
+      const [count] = await this.model.update(entity, { where });
       if (count === 0) {
         await this.model.create(entity);
       }
@@ -214,10 +219,10 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
       };
 
       await this.onFetchInstallation({
-        logger: this.logger,
-        model: row as unknown as M,
-        installation,
         query,
+        installation,
+        model: row as unknown as M,
+        logger: this.logger,
       });
       return installation;
     }
@@ -236,6 +241,11 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
 
     await this.sequelize.sync();
+
+    await this.onDeleteInstallation({
+      query,
+      logger: this.logger,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = this.buildFullWhereClause(query);

@@ -49,7 +49,7 @@ All the packages guarantee they work with great consideration for the following 
 * InstallationStore in any of these packages returns the latest bot token plus the latest user token (only when it exists) for a query (enterprise_id / team_id / user_id / is_enterprise_install).
 * Org-wide installations are also properly supported. All the packages have a unit test named `src/tests/org-wide-installation.spec.ts` to cover the scenarios.
 * `historicalDataEnabled: boolean` option is supported in all the packages. If the options is set to true, the InstallationStore stores all the histories of installations. If the value is false, it maintains only the latest data by updating them. For deletion in the case of token revocation and uninstallations, all the associated data must be deleted regardless of the mode.
-* The callbacks `onFetchInstallation` and `onStoreInstallation` are supported in all the packages. These callbacks enable developers to customize the data to be stored in a database (e.g., encrypting token values in database rows), append custom properties to the database row, and do extra logging for better system monitoring.
+* The callbacks `onFetchInstallation`, `onStoreInstallation`, and `onDeleteInstallation` are supported in all the packages. These callbacks enable developers to customize the data to be stored in a database (e.g., encrypting token values in database rows), append custom properties to the database row, and do extra logging for better system monitoring.
 * `InstallationStore#close(): Promise<void>` method is supported in all the packages. This method is supposed to be used for safely disconnecting from a database and cleaning up the remaining resources.
 
 ### Open source license

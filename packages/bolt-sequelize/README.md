@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.0.4",
+    "slack-bolt-sequelize": "^0.1.0",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },
@@ -135,4 +135,5 @@ export SLACK_SIGNING_SECRET=
 export SLACK_STATE_SECRET=secret
 export SLACK_APP_TOKEN=
 npm start
+# Visit https://{your public domain}/slack/install
 ```

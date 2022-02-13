@@ -81,4 +81,8 @@ export default class SlackAppInstallation implements InstallationEntity {
 
   @Column()
   public installedAt?: Date;
+
+  // Custom property example
+  @Column({ nullable: true })
+  public memo?: string;
 }

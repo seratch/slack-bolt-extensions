@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-prisma": "^0.0.2",
+    "slack-bolt-prisma": "^0.1.0",
     "sqlite3": "4.2.0",
     "@prisma/client": "^3.9.2"
   },

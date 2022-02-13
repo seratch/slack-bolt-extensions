@@ -1,9 +1,9 @@
 import { Logger } from '@slack/logger';
-import { Installation } from '@slack/oauth';
 import { Connection, EntityTarget } from 'typeorm';
 import InstallationEntity from './InstallationEntity';
+import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
 
-export default interface TypeORMInstallationStoreArgs {
+export default interface TypeORMInstallationStoreArgs<E extends InstallationEntity> {
   /**
    * TypeORM database connection provider
    */
@@ -25,12 +25,6 @@ export default interface TypeORMInstallationStoreArgs {
   entityFactory: () => InstallationEntity;
 
   /**
-   * Custom field configurator, which is supposed be called in #storeInstallation
-   */
-  customEntityPropertyConfigurator?: <T extends InstallationEntity> (
-    entity: T, installation: Installation) => Promise<void>,
-
-  /**
    * The EntityTarget to identify the corresponding repository
    */
   entityTarget: EntityTarget<InstallationEntity>;
@@ -49,6 +43,21 @@ export default interface TypeORMInstallationStoreArgs {
    * The property to sort the rows in #fetchInstallation method. The default value is "id".
    */
   sortPropertyName?: string;
+
+  /**
+   * Callback for #storeInstallation()
+   */
+  onStoreInstallation?: (args: StoreInstallationStoreCallbackArgs<E>) => Promise<void>;
+
+  /**
+   * Callback for #fetchInstallation()
+   */
+  onFetchInstallation?: (args: FetchInstallationStoreCallbackArgs<E>) => Promise<void>;
+
+  /**
+   * Callback for #deleteInstallation()
+   */
+  onDeleteInstallation?: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
 
   /**
    * Logger for the internal logs.

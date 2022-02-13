@@ -66,7 +66,7 @@ describe('Workspace-level installation', () => {
 
     try {
       await installationStore.storeInstallation(inputInstallation, logger);
-
+      // Latest user installation associated with user 1
       const userLatest: Installation = JSON.parse(JSON.stringify(inputInstallation));
       if (userLatest.bot) {
         userLatest.user.token = 'xoxp-YYY';
@@ -76,6 +76,7 @@ describe('Workspace-level installation', () => {
       }
       await installationStore.storeInstallation(userLatest, logger);
 
+      // Latest bot installation associated with user 2
       const botLatest: Installation = JSON.parse(JSON.stringify(inputInstallation));
       botLatest.user.id = 'test-user-id-2';
       if (botLatest.bot) {
@@ -90,8 +91,7 @@ describe('Workspace-level installation', () => {
       }
       await installationStore.storeInstallation(botLatest, logger);
 
-      // --------------------------------------------------
-      // the latest one should be returned here
+      // fetchInstallation tests
       const user1Query = {
         enterpriseId: 'test-enterprise-id',
         teamId: 'test-team-id',
@@ -99,7 +99,9 @@ describe('Workspace-level installation', () => {
         isEnterpriseInstall: false,
       };
       let userInstallation = await installationStore.fetchInstallation(user1Query, logger);
+      // User 1's user token
       verifyFetchedUserInstallationIsLatestOne(userInstallation, tokenExpiresAt);
+      // The latest bot token from user 2
       verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
 
       const botQuery = {
@@ -108,6 +110,7 @@ describe('Workspace-level installation', () => {
         isEnterpriseInstall: false,
       };
       let botInstallation = await installationStore.fetchInstallation(botQuery, logger);
+      // The latest bot token from user 2
       verifyFetchedBotInstallationIsLatestOne(botInstallation, tokenExpiresAt);
 
       await installationStore.deleteInstallation(user1Query, logger);
@@ -115,9 +118,11 @@ describe('Workspace-level installation', () => {
       userInstallation = await installationStore.fetchInstallation(user1Query, logger);
       // userToken no longer exists but bot data should be still alive
       assert.isUndefined(userInstallation.user.token);
+      // The latest bot token from user 2
       verifyFetchedBotInstallationIsLatestOne(userInstallation, tokenExpiresAt);
 
       botInstallation = await installationStore.fetchInstallation(botQuery, logger);
+      // The latest bot token from user 2
       verifyFetchedBotInstallationIsLatestOne(botInstallation, tokenExpiresAt);
 
       await installationStore.deleteInstallation(botQuery, logger);
@@ -130,6 +135,7 @@ describe('Workspace-level installation', () => {
       }
 
       // Managing multiple Slack apps in a single database table
+      // A different app A stores a token with user 2
       const appABotInstallation: Installation = JSON.parse(JSON.stringify(inputInstallation));
       appABotInstallation.user.id = 'test-user-id-2';
       if (appABotInstallation.bot) {
@@ -139,9 +145,10 @@ describe('Workspace-level installation', () => {
         assert.fail('the test data is invalid');
       }
       await appAStore.storeInstallation(appABotInstallation, logger);
+
+      // App A should find the installation
       const shouldBeFoundBot = await appAStore.fetchInstallation(botQuery, logger);
       assert.isNotNull(shouldBeFoundBot);
-
       const appAUserInstallation: Installation = JSON.parse(JSON.stringify(inputInstallation));
       await appAStore.storeInstallation(appAUserInstallation, logger);
       const shouldBeFoundUser = await appAStore.fetchInstallation(user1Query, logger);

@@ -16,8 +16,9 @@ import { Connection, EntityTarget } from 'typeorm';
 // eslint-disable-next-line import/no-internal-modules
 import InstallationEntity from './InstallationEntity';
 import TypeORMInstallationStoreArgs from './TypeORMInstallationStoreArgs';
+import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
 
-export default class TypeORMInstallationStore implements InstallationStore {
+export default class TypeORMInstallationStore<E extends InstallationEntity> implements InstallationStore {
   private connectionProvider?: () => Promise<Connection>;
 
   private connectionCacheEnabled: boolean;
@@ -32,14 +33,17 @@ export default class TypeORMInstallationStore implements InstallationStore {
 
   private entityFactory: () => InstallationEntity;
 
-  private customEntityPropertyConfigurator: <T extends InstallationEntity> (
-    entity: T, installation: Installation) => Promise<void>;
+  private onStoreInstallation: (args: StoreInstallationStoreCallbackArgs<E>) => Promise<void>;
+
+  private onFetchInstallation: (args: FetchInstallationStoreCallbackArgs<E>) => Promise<void>;
+
+  private onDeleteInstallation: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
 
   private entityTarget: EntityTarget<InstallationEntity>;
 
   private sortPropertyName: string;
 
-  public constructor(options: TypeORMInstallationStoreArgs) {
+  public constructor(options: TypeORMInstallationStoreArgs<E>) {
     this.connectionProvider = options.connectionProvider;
     this.connectionCacheEnabled = options.connectionCacheEnabled !== undefined ?
       options.connectionCacheEnabled : true;
@@ -52,11 +56,18 @@ export default class TypeORMInstallationStore implements InstallationStore {
     this.logger = options.logger || new ConsoleLogger();
     this.historicalDataEnabled = options.historicalDataEnabled !== undefined ?
       options.historicalDataEnabled : true;
+
+    this.onStoreInstallation = options.onStoreInstallation !== undefined ?
+      options.onStoreInstallation : async (_) => {};
+    this.onFetchInstallation = options.onFetchInstallation !== undefined ?
+      options.onFetchInstallation : async (_) => {};
+    this.onDeleteInstallation = options.onDeleteInstallation !== undefined ?
+      options.onDeleteInstallation : async (_) => {};
+
     this.entityFactory = options.entityFactory;
-    this.customEntityPropertyConfigurator = options.customEntityPropertyConfigurator !== undefined ?
-      options.customEntityPropertyConfigurator : async (_e, _i) => {};
     this.entityTarget = options.entityTarget;
     this.sortPropertyName = options.sortPropertyName || 'id';
+
     this.logger.debug(`TypeORMInstallationStore has been initialized (clientId: ${this.clientId}, entityTarget: ${this.entityTarget})`);
   }
 
@@ -91,6 +102,11 @@ export default class TypeORMInstallationStore implements InstallationStore {
       }
     }
     await this.setupRow(row, i);
+    await this.onStoreInstallation({
+      entity: row as E,
+      installation: i,
+      logger: this.logger,
+    });
     const conn = await this.getConnection();
     await conn.manager.save<InstallationEntity>(row);
     logger?.debug(`#storeInstallation successfully completed ${commonLogPart}`);
@@ -106,7 +122,7 @@ export default class TypeORMInstallationStore implements InstallationStore {
 
     const row = await this.findRow(query);
     if (row) {
-      return {
+      const installation: Installation = {
         team: row.teamId ?
           {
             id: row.teamId,
@@ -153,6 +169,13 @@ export default class TypeORMInstallationStore implements InstallationStore {
         isEnterpriseInstall: row.isEnterpriseInstall,
         authVersion: 'v2', // This module does not support v1 installations
       };
+      await this.onFetchInstallation({
+        query,
+        installation,
+        entity: row as E,
+        logger: this.logger,
+      });
+      return installation;
     }
     logger?.debug(
       `#fetchInstallation didn't return any installation data ${commonLogPart}`,
@@ -167,6 +190,11 @@ export default class TypeORMInstallationStore implements InstallationStore {
     const { enterpriseId, teamId, userId, isEnterpriseInstall } = query;
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
+
+    await this.onDeleteInstallation({
+      query,
+      logger: this.logger,
+    });
 
     const conn = await this.getConnection();
     await conn.manager
@@ -260,7 +288,6 @@ export default class TypeORMInstallationStore implements InstallationStore {
     if (entity.installedAt === undefined) {
       entity.installedAt = new Date();
     }
-    await this.customEntityPropertyConfigurator(entity, i);
   }
 
   private async findRow(query: InstallationQuery<boolean>): Promise<InstallationEntity | undefined> {

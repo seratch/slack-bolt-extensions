@@ -1,17 +1,17 @@
 import { Logger } from '@slack/logger';
 import { Installation, InstallationQuery } from '@slack/oauth';
-import SlackAppInstallation from './SlackAppInstallation';
+import InstallationEntity from './InstallationEntity';
 
-export interface StoreInstallationStoreCallbackArgs<M extends SlackAppInstallation> {
-  model: M;
+export interface StoreInstallationStoreCallbackArgs<E extends InstallationEntity> {
+  entity: E;
   installation: Installation;
   logger: Logger;
   query?: InstallationQuery<boolean>;
 }
 
-export interface FetchInstallationStoreCallbackArgs<M extends SlackAppInstallation> {
+export interface FetchInstallationStoreCallbackArgs<E extends InstallationEntity> {
   query: InstallationQuery<boolean>;
-  model: M;
+  entity: E;
   installation: Installation;
   logger: Logger;
 }

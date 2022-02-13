@@ -32,6 +32,9 @@ const installationStore = new PrismaInstallationStore({
     // eslint-disable-next-line no-param-reassign
     prismaInput.memo = 'test';
   },
+  onDeleteInstallation: async ({ query }) => {
+    logger.info(query);
+  },
 });
 
 const app = new App({

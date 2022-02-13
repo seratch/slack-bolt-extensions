@@ -40,7 +40,7 @@ describe('Workspace-level installation', () => {
   const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 
   async function runAllTests(historicalDataEnabled: boolean) {
-    const connection = await createConnection();
+    const connection = await createConnection('team-level-tests');
     // --------------------------------------------------
     // Create a few installations
     // - two installations by user 1

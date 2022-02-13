@@ -1,3 +1,4 @@
+import { ConsoleLogger } from '@slack/logger';
 import {
   Installation,
   InstallationQuery,
@@ -6,6 +7,7 @@ import {
 } from '@slack/oauth';
 import { Mongoose, Model, Schema } from 'mongoose';
 import MongooseInstallationStoreArgs from './MongooseInstallationStoreArgs';
+import { DeleteInstallationCallbackArgs, FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './MongooseInstallationStoreCallbackArgs';
 
 export default class MongooseInstallationStore implements InstallationStore {
   private mongoose: Mongoose;
@@ -14,7 +16,19 @@ export default class MongooseInstallationStore implements InstallationStore {
 
   private clientId?: string;
 
+  private logger: Logger;
+
   private schema: Schema;
+
+  private searchColumnNameForApp: string;
+
+  private searchColumnNameForUser: string;
+
+  private onFetchInstallation: (args: FetchInstallationCallbackArgs) => Promise<void>;
+
+  private onStoreInstallation: (args: StoreInstallationCallbackArgs) => Promise<void>;
+
+  private onDeleteInstallation: (args: DeleteInstallationCallbackArgs) => Promise<void>;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private model: Model<any>;
@@ -24,20 +38,36 @@ export default class MongooseInstallationStore implements InstallationStore {
     this.historicalDataEnabled = options.historicalDataEnabled !== undefined ?
       options.historicalDataEnabled : true;
     this.clientId = options.clientId;
+    this.logger = options.logger !== undefined ?
+      options.logger : new ConsoleLogger();
+    this.searchColumnNameForApp = options.searchColumnNameForApp || '__appOrgWorkspace__';
+    this.searchColumnNameForUser = options.searchColumnNameForUser || '__user__';
+    this.onFetchInstallation = options.onFetchInstallation !== undefined ?
+      options.onFetchInstallation : async (_) => {};
+    this.onStoreInstallation = options.onStoreInstallation !== undefined ?
+      options.onStoreInstallation : async (_) => {};
+    this.onDeleteInstallation = options.onDeleteInstallation !== undefined ?
+      options.onDeleteInstallation : async (_) => {};
 
-    this.schema = new this.mongoose.Schema(
+    this.schema = options.mongooseSchema || new this.mongoose.Schema(
       {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        __appOrgWorkspace__: { type: String, index: true, unique: false },
+        [this.searchColumnNameForApp]: { type: String, index: true, unique: false },
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        __user__: { type: String, index: true, unique: false },
+        [this.searchColumnNameForUser]: { type: String, index: true, unique: false },
       },
       { strict: false, timestamps: { createdAt: 'db_record_created_at', updatedAt: 'db_record_updated_at' } },
     );
-    // TODO: better approach?
-    // OverwriteModelError: Cannot overwrite `SlackAppInstallation` model once compiled.
-    const r = `${new Date().getTime()}-${Math.floor(Math.random() * 1000)}`;
-    this.model = this.mongoose.model(`SlackAppInstallation(${r})`, this.schema);
+    let modelName = options.mongooseModelName;
+    if (modelName === undefined) {
+      // TODO: better approach? Appending random value to avoid the following error when instantiating multiple.
+      // OverwriteModelError: Cannot overwrite `SlackAppInstallation` model once compiled.
+      const r = `${new Date().getTime()}${Math.floor(Math.random() * 10000)}`;
+      modelName = `SlackAppInstallation_${r}`;
+    }
+    this.model = this.mongoose.model(modelName, this.schema);
+
+    this.logger.debug(`PrismaInstallationStore has been initialized (clientId: ${this.clientId}, model: ${modelName})`);
   }
 
   public async storeInstallation<AuthVersion extends 'v1' | 'v2'>(
@@ -56,18 +86,31 @@ export default class MongooseInstallationStore implements InstallationStore {
     newRow.__appOrgWorkspace__ = `${this.clientId}:${enterpriseId}:${isEnterpriseInstall ? undefined : teamId}`;
     newRow.__user__ = userId;
     if (this.historicalDataEnabled) {
+      await this.onStoreInstallation({
+        entity: newRow,
+        installation: i,
+        logger: this.logger,
+      });
       await this.model.create(newRow);
     } else {
-      const existingRow = await this.model.findOne(this.buildFullQuery({
+      const where = {
         enterpriseId,
         teamId,
         userId,
         isEnterpriseInstall,
-      }))
+      };
+      const existingRow = await this.model.findOne(this.buildFullQuery(where))
         // eslint-disable-next-line @typescript-eslint/naming-convention
         .sort({ _id: -1 })
         .limit(1)
         .exec();
+      await this.onStoreInstallation({
+        entity: newRow,
+        installation: i,
+        logger: this.logger,
+        query: where,
+        idToUpdate: existingRow?._id,
+      });
       if (existingRow) {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         await this.model.updateOne({ _id: existingRow._id }, i);
@@ -116,6 +159,11 @@ export default class MongooseInstallationStore implements InstallationStore {
         }
       }
     }
+    await this.onFetchInstallation({
+      query,
+      installation: row as Installation,
+      logger: this.logger,
+    });
     if (row) {
       logger?.debug(
         `#fetchInstallation found the installation data ${commonLogPart}`,
@@ -136,9 +184,14 @@ export default class MongooseInstallationStore implements InstallationStore {
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
 
+    await this.onDeleteInstallation({
+      query,
+      logger: this.logger,
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = this.buildFullQuery(query);
     const deletionCount = await this.model.deleteMany(where).exec();
+
     logger?.debug(
       `#deleteInstallation deleted ${deletionCount} rows ${commonLogPart}`,
     );
@@ -161,9 +214,9 @@ export default class MongooseInstallationStore implements InstallationStore {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     const teamId = query.isEnterpriseInstall ? undefined : query.teamId;
-    where.__appOrgWorkspace__ = `${this.clientId}:${query.enterpriseId}:${teamId}`;
+    where[this.searchColumnNameForApp] = `${this.clientId}:${query.enterpriseId}:${teamId}`;
     if (query.userId) {
-      where.__user__ = query.userId;
+      where[this.searchColumnNameForUser] = query.userId;
     }
     return where;
   }

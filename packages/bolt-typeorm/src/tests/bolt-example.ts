@@ -5,18 +5,38 @@
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { createConnection } from 'typeorm';
-import { TypeORMInstallationStore } from '../index';
+import { InstallationEntity, TypeORMInstallationStore } from '../index';
 import SlackAppInstallation from '../entity/SlackAppInstallation';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
-const installationStore = new TypeORMInstallationStore({
-  connectionProvider: async () => createConnection(),
+interface CustomInstallationEntity extends InstallationEntity {
+  memo?: string;
+}
+
+const installationStore = new TypeORMInstallationStore<CustomInstallationEntity>({
+  connectionProvider: async () => createConnection('bolt-example-app'),
   entityFactory: () => new SlackAppInstallation(),
   entityTarget: SlackAppInstallation,
   clientId: process.env.SLACK_CLIENT_ID,
   logger,
+  onStoreInstallation: async ({ entity, installation }) => {
+    // You can encrypt/decrypt values and add custom data
+    // eslint-disable-next-line no-param-reassign
+    entity.memo = 'This is noted';
+    logger.info(entity);
+    logger.info(installation);
+  },
+  onFetchInstallation: async ({ entity, installation, query }) => {
+    // You can encrypt/decrypt values and add custom data
+    logger.info(entity);
+    logger.info(installation);
+    logger.info(query);
+  },
+  onDeleteInstallation: async ({ query }) => {
+    logger.info(query);
+  },
 });
 
 const app = new App({

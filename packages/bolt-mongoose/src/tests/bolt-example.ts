@@ -17,8 +17,21 @@ const mongoose = new Mongoose({
 });
 const installationStore = new MongooseInstallationStore({
   mongoose,
+  mongooseModelName: 'slack-app-installation',
   clientId: process.env.SLACK_CLIENT_ID,
   logger,
+  onFetchInstallation: async ({ query, installation }) => {
+    logger.info(query);
+    logger.info(installation);
+  },
+  onStoreInstallation: async ({ installation, entity }) => {
+    logger.info(installation);
+    // eslint-disable-next-line no-param-reassign
+    entity.memo = 'test';
+  },
+  onDeleteInstallation: async ({ query }) => {
+    logger.info(query);
+  },
 });
 
 const app = new App({

@@ -3,15 +3,16 @@ import { Installation, InstallationQuery } from '@slack/oauth';
 
 export interface StoreInstallationCallbackArgs {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prismaInput: any;
+  entity: any;
   installation: Installation;
   logger: Logger;
   query?: InstallationQuery<boolean>;
-  idToUpdate?: number | string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  idToUpdate?: any;
 }
 
 export interface FetchInstallationCallbackArgs {
-  installation: Installation;
+  installation?: Installation;
   logger: Logger;
   query: InstallationQuery<boolean>;
 }

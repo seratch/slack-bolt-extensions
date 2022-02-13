@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-typeorm": "^0.0.2",
+    "slack-bolt-typeorm": "^0.1.0",
     "sqlite3": "4.2.0",
     "typeorm": "^0.2.41",
     "typeorm-naming-strategies": "^2.0.0"
@@ -249,4 +249,5 @@ export SLACK_SIGNING_SECRET=
 export SLACK_STATE_SECRET=secret
 export SLACK_APP_TOKEN=
 npm start
+# Visit https://{your public domain}/slack/install
 ```

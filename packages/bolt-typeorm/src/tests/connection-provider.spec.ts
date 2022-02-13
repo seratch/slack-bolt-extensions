@@ -17,7 +17,7 @@ const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 describe('ConnectionProvider', () => {
   it('works with connectionProvider', async () => {
     const installationStore = new TypeORMInstallationStore({
-      connectionProvider: async () => createConnection(),
+      connectionProvider: async () => createConnection('connection-provider-tests'),
       entityFactory: () => new SlackAppInstallation(),
       entityTarget: SlackAppInstallation,
     });

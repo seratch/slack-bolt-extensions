@@ -40,7 +40,7 @@ describe('Org-wide installation', () => {
   const inputInstallation = buildOrgWideInstallation(tokenExpiresAt);
 
   async function runAllTests(historicalDataEnabled: boolean) {
-    const connection = await createConnection();
+    const connection = await createConnection('org-wide-tests');
     // --------------------------------------------------
     // Create a few installations
     // - two installations by user 1

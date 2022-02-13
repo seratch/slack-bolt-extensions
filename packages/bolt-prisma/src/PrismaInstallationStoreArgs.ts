@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Logger } from '@slack/logger';
 
-import { FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './PrismaInstallationStoreCallbackArgs';
+import { DeleteInstallationCallbackArgs, FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './PrismaInstallationStoreCallbackArgs';
 
 export default interface PrismaInstallationStoreArgs {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,5 +11,6 @@ export default interface PrismaInstallationStoreArgs {
   historicalDataEnabled?: boolean;
   onFetchInstallation?: (args: FetchInstallationCallbackArgs) => Promise<void>;
   onStoreInstallation?: (args: StoreInstallationCallbackArgs) => Promise<void>;
+  onDeleteInstallation?: (args: DeleteInstallationCallbackArgs) => Promise<void>;
   logger?: Logger,
 }

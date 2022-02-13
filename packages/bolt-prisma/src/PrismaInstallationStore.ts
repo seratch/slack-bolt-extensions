@@ -10,7 +10,7 @@ import {
 } from '@slack/oauth';
 
 import PrismaInstallationStoreArgs from './PrismaInstallationStoreArgs';
-import { StoreInstallationCallbackArgs, FetchInstallationCallbackArgs } from './PrismaInstallationStoreCallbackArgs';
+import { StoreInstallationCallbackArgs, FetchInstallationCallbackArgs, DeleteInstallationCallbackArgs } from './PrismaInstallationStoreCallbackArgs';
 
 export default class PrismaInstallationStore implements InstallationStore {
   private prismaClient?: PrismaClient;
@@ -28,6 +28,8 @@ export default class PrismaInstallationStore implements InstallationStore {
 
   private onStoreInstallation: (args: StoreInstallationCallbackArgs) => Promise<void>;
 
+  private onDeleteInstallation: (args: DeleteInstallationCallbackArgs) => Promise<void>;
+
   public constructor(options: PrismaInstallationStoreArgs) {
     this.prismaClient = options.prismaClient;
     this.prismaTable = options.prismaTable;
@@ -40,6 +42,8 @@ export default class PrismaInstallationStore implements InstallationStore {
       options.onFetchInstallation : async (_) => {};
     this.onStoreInstallation = options.onStoreInstallation !== undefined ?
       options.onStoreInstallation : async (_) => {};
+    this.onDeleteInstallation = options.onDeleteInstallation !== undefined ?
+      options.onDeleteInstallation : async (_) => {};
 
     this.logger.debug(`PrismaInstallationStore has been initialized (clientId: ${this.clientId})`);
   }
@@ -228,6 +232,11 @@ export default class PrismaInstallationStore implements InstallationStore {
     const { enterpriseId, teamId, userId } = query;
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
+
+    await this.onDeleteInstallation({
+      query,
+      logger: this.logger,
+    });
 
     const deleted = await this.prismaTable.deleteMany({
       where: this.buildFullWhereClause(query),
