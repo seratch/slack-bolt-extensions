@@ -28,9 +28,9 @@ export default class MongooseInstallationStore implements InstallationStore {
     this.schema = new this.mongoose.Schema(
       {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        __appAndPlace: { type: String, index: true, unique: false },
+        __appOrgWorkspace__: { type: String, index: true, unique: false },
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        __userId: { type: String, index: true, unique: false },
+        __user__: { type: String, index: true, unique: false },
       },
       { strict: false, timestamps: { createdAt: 'db_record_created_at', updatedAt: 'db_record_updated_at' } },
     );
@@ -53,8 +53,8 @@ export default class MongooseInstallationStore implements InstallationStore {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newRow = i as any;
-    newRow.__appAndPlace = `${this.clientId}:${enterpriseId}:${isEnterpriseInstall ? undefined : teamId}`;
-    newRow.__userId = userId;
+    newRow.__appOrgWorkspace__ = `${this.clientId}:${enterpriseId}:${isEnterpriseInstall ? undefined : teamId}`;
+    newRow.__user__ = userId;
     if (this.historicalDataEnabled) {
       await this.model.create(newRow);
     } else {
@@ -152,7 +152,7 @@ export default class MongooseInstallationStore implements InstallationStore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildBotQuery(query: InstallationQuery<boolean>): any {
     const where = this.buildFullQuery(query);
-    delete where.__userId;
+    delete where.__user__;
     return where;
   }
 
@@ -161,9 +161,9 @@ export default class MongooseInstallationStore implements InstallationStore {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
     const teamId = query.isEnterpriseInstall ? undefined : query.teamId;
-    where.__appAndPlace = `${this.clientId}:${query.enterpriseId}:${teamId}`;
+    where.__appOrgWorkspace__ = `${this.clientId}:${query.enterpriseId}:${teamId}`;
     if (query.userId) {
-      where.__userId = query.userId;
+      where.__user__ = query.userId;
     }
     return where;
   }

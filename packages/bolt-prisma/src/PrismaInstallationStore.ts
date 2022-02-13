@@ -179,7 +179,7 @@ export default class PrismaInstallationStore implements InstallationStore {
           id: row.userId!,
           token: row.userToken || undefined,
           refreshToken: row.userRefreshToken || undefined,
-          expiresAt: row.userTokenExpiresAt ? row.userTokenExpiresAt.getTime() / 1000 : undefined,
+          expiresAt: row.userTokenExpiresAt ? Math.floor(row.userTokenExpiresAt.getTime() / 1000) : undefined,
           scopes: row.userScopes?.split(','),
         },
         bot:
@@ -189,7 +189,7 @@ export default class PrismaInstallationStore implements InstallationStore {
                 userId: row.botUserId,
                 token: row.botToken,
                 refreshToken: row.botRefreshToken || undefined,
-                expiresAt: row.botTokenExpiresAt ? row.botTokenExpiresAt.getTime() / 1000 : undefined,
+                expiresAt: row.botTokenExpiresAt ? Math.floor(row.botTokenExpiresAt.getTime() / 1000) : undefined,
                 scopes: row.botScopes?.split(',') || [],
               } :
               undefined,

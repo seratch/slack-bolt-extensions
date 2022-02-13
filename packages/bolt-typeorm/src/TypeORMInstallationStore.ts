@@ -125,7 +125,7 @@ export default class TypeORMInstallationStore implements InstallationStore {
           id: row.userId!,
           token: row.userToken,
           refreshToken: row.userRefreshToken,
-          expiresAt: row.userTokenExpiresAt?.getTime(),
+          expiresAt: row.userTokenExpiresAt ? Math.floor(row.userTokenExpiresAt.getTime() / 1000) : undefined,
           scopes: row.userScopes?.split(','),
         },
         bot:
@@ -135,7 +135,7 @@ export default class TypeORMInstallationStore implements InstallationStore {
               userId: row.botUserId,
               token: row.botToken,
               refreshToken: row.botRefreshToken,
-              expiresAt: row.botTokenExpiresAt?.getTime(),
+              expiresAt: row.botTokenExpiresAt ? Math.floor(row.botTokenExpiresAt.getTime() / 1000) : undefined,
               scopes: row.botScopes?.split(',') || [],
             } :
             undefined,
@@ -238,7 +238,7 @@ export default class TypeORMInstallationStore implements InstallationStore {
     if (entity.botRefreshToken !== i.bot?.refreshToken) {
       entity.botRefreshToken = i.bot?.refreshToken;
       entity.botTokenExpiresAt = i.bot?.expiresAt ?
-        new Date(i.bot.expiresAt) :
+        new Date(i.bot.expiresAt as number * 1000) :
         undefined;
     }
     entity.userId = i.user.id;
@@ -247,7 +247,7 @@ export default class TypeORMInstallationStore implements InstallationStore {
     if (entity.userRefreshToken !== i.user.refreshToken) {
       entity.userRefreshToken = i.user.refreshToken;
       entity.userTokenExpiresAt = i.user?.expiresAt ?
-        new Date(i.user.expiresAt) :
+        new Date(i.user.expiresAt as number * 1000) :
         undefined;
     }
     entity.incomingWebhookUrl = i.incomingWebhook?.url;

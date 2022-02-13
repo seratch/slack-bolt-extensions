@@ -85,14 +85,14 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
       botScopes: i.bot?.scopes?.join(','),
       botRefreshToken: i.bot?.refreshToken,
       botTokenExpiresAt: i.bot?.expiresAt ?
-        new Date(i.bot.expiresAt) :
+        new Date(i.bot.expiresAt as number * 1000) :
         undefined,
       userId: i.user.id,
       userToken: i.user.token,
       userScopes: i.user.scopes?.join(','),
       userRefreshToken: i.user.refreshToken,
       userTokenExpiresAt: i.user?.expiresAt ?
-        new Date(i.user.expiresAt) :
+        new Date(i.user.expiresAt as number * 1000) :
         undefined,
       incomingWebhookUrl: i.incomingWebhook?.url,
       incomingWebhookChannel: i.incomingWebhook?.channel,
@@ -185,7 +185,7 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
           id: row.userId!,
           token: row.userToken,
           refreshToken: row.userRefreshToken,
-          expiresAt: row.userTokenExpiresAt?.getTime(),
+          expiresAt: row.userTokenExpiresAt ? Math.floor(row.userTokenExpiresAt.getTime() / 1000) : undefined,
           scopes: row.userScopes?.split(','),
         },
         bot:
@@ -195,7 +195,7 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
                 userId: row.botUserId,
                 token: row.botToken,
                 refreshToken: row.botRefreshToken,
-                expiresAt: row.botTokenExpiresAt?.getTime(),
+                expiresAt: row.botTokenExpiresAt ? Math.floor(row.botTokenExpiresAt.getTime() / 1000) : undefined,
                 scopes: row.botScopes?.split(',') || [],
               } :
               undefined,

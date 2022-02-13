@@ -34,7 +34,7 @@ describe('Workspace-level installation', () => {
     assert.equal(installation?.user.expiresAt, expiresAt);
   }
 
-  const tokenExpiresAt = new Date().getTime();
+  const tokenExpiresAt = Math.floor(new Date().getTime() / 1000);
   const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 
   async function runAllTests(historicalDataEnabled: boolean) {
