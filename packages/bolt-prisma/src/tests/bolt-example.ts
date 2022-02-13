@@ -59,15 +59,18 @@ app.event('app_mention', async ({ event, say }) => {
   logger.info('⚡️ Bolt app is running!');
 })();
 
-async function processExistHandler(args: any) {
-  logger.info(`processExistHandler args: ${args}`);
-  process.exit();
-}
-process.on('SIGINT', async (args) => await processExistHandler(args));
-process.on('SIGUSR1', async (args) => await processExistHandler(args));
-process.on('SIGUSR2', async (args) => await processExistHandler(args));
-process.on('uncaughtException', async (args) => await processExistHandler(args));
-process.on('exit', async (code) => {
-  await installationStore.close();
-  process.exit(code);
-});
+// // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// async function processExistHandler(args: any) {
+//   logger.info(`processExistHandler args: ${args}`);
+//   // eslint-disable-next-line node/no-process-exit
+//   process.exit();
+// }
+// process.on('SIGINT', async (args) => processExistHandler(args));
+// process.on('SIGUSR1', async (args) => processExistHandler(args));
+// process.on('SIGUSR2', async (args) => processExistHandler(args));
+// process.on('uncaughtException', async (args) => processExistHandler(args));
+// process.on('exit', async (code) => {
+//   await installationStore.close();
+//   // eslint-disable-next-line node/no-process-exit
+//   process.exit(code);
+// });
