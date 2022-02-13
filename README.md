@@ -1,5 +1,7 @@
 ## ⚡ Bolt for JavaScript Extensions (WIP)
 
+[![npm version](https://badge.fury.io/js/slack-bolt-prisma.svg)](https://badge.fury.io/js/slack-bolt-prisma) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
+
 ⚠️ **Important Notice** ⚠️ 
 > This project is still work in progress, and may have bugs in it. If you would like to immediately reuse the code here for your production apps, please feel free to take any under the MIT license and maintain it on your own.
 
@@ -55,3 +57,40 @@ All the packages guarantee they work with great consideration for the following 
 ### Open source license
 
 All the packages in this repository are published in the npm package registry under the MIT open-source license.
+
+### Maintainers Guide
+
+#### Run all the unit tests
+
+[![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml)
+
+You can run all the unit tests ysung lerna command:
+
+```bash
+git clone git@github.com:seratch/slack-bolt-extensions.git
+cd slack-bolt-extensions/
+npm i
+npx lerna bootstrap
+npx lerna run test
+```
+
+When you work on a specific project, head to the package directory and use `npm` commands here:
+
+```bash
+cd slack-bolt-extensions/
+npm i
+npx lerna bootstrap
+cd packages/bolt-prisma/
+npm test
+code . # Open the project in Visual Studio Code
+```
+
+#### Publish the packages
+
+We release all the packages at a time even if some of the packages do not have any changes.
+
+```bash
+npx lerna bootstrap
+npx lerna publish
+# Follow the interactive steps with lerna
+```
