@@ -4,7 +4,7 @@
 import { Installation } from '@slack/oauth';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { assert } from 'chai';
-import { createConnection } from 'typeorm';
+import { Connection, createConnection } from 'typeorm';
 import { TypeORMInstallationStore } from '../index';
 import SlackAppInstallation from '../entity/SlackAppInstallation';
 import { buildTeamInstallation } from './test-data';
@@ -12,12 +12,14 @@ import { buildTeamInstallation } from './test-data';
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);
 
-describe('Workspace-level installation', () => {
+describe('Workspace-level installation', async () => {
+  const connectionInTest: Connection = await createConnection('team-level-tests');
+
   it('saves and finds an installation', async () => {
-    await runAllTests(true);
+    await runAllTests(connectionInTest, true);
   });
   it('saves and finds an installation (historical data disabled)', async () => {
-    await runAllTests(false);
+    await runAllTests(connectionInTest, false);
   });
 
   function verifyFetchedBotInstallationIsLatestOne(installation: Installation<'v1' | 'v2'>, expiresAt: number) {
@@ -39,8 +41,7 @@ describe('Workspace-level installation', () => {
   const tokenExpiresAt = Math.floor(new Date().getTime() / 1000);
   const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 
-  async function runAllTests(historicalDataEnabled: boolean) {
-    const connection = await createConnection('team-level-tests');
+  async function runAllTests(connection: Connection, historicalDataEnabled: boolean) {
     // --------------------------------------------------
     // Create a few installations
     // - two installations by user 1

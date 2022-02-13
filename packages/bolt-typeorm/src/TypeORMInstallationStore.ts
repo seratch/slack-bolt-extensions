@@ -16,7 +16,7 @@ import { Connection, EntityTarget } from 'typeorm';
 // eslint-disable-next-line import/no-internal-modules
 import InstallationEntity from './InstallationEntity';
 import TypeORMInstallationStoreArgs from './TypeORMInstallationStoreArgs';
-import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
+import { DeleteInstallationCallbackArgs, FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
 
 export default class TypeORMInstallationStore<E extends InstallationEntity> implements InstallationStore {
   private connectionProvider?: () => Promise<Connection>;
@@ -33,11 +33,11 @@ export default class TypeORMInstallationStore<E extends InstallationEntity> impl
 
   private entityFactory: () => InstallationEntity;
 
-  private onStoreInstallation: (args: StoreInstallationStoreCallbackArgs<E>) => Promise<void>;
+  private onStoreInstallation: (args: StoreInstallationCallbackArgs<E>) => Promise<void>;
 
-  private onFetchInstallation: (args: FetchInstallationStoreCallbackArgs<E>) => Promise<void>;
+  private onFetchInstallation: (args: FetchInstallationCallbackArgs<E>) => Promise<void>;
 
-  private onDeleteInstallation: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
+  private onDeleteInstallation: (args: DeleteInstallationCallbackArgs) => Promise<void>;
 
   private entityTarget: EntityTarget<InstallationEntity>;
 

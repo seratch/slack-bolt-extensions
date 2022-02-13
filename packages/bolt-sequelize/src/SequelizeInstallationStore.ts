@@ -11,7 +11,7 @@ import {
 import { Sequelize, Op } from 'sequelize';
 import SlackAppInstallation from './SlackAppInstallation';
 import SequelizeInstallationStoreArgs from './SequelizeInstallationStoreArgs';
-import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './SequelizeInstallationStoreCallbackArgs';
+import { DeleteInstallationCallbackArgs, FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './SequelizeInstallationStoreCallbackArgs';
 
 export default class SequelizeInstallationStore<M extends SlackAppInstallation> implements InstallationStore {
   private sequelize: Sequelize;
@@ -24,11 +24,11 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
 
   private model: typeof SlackAppInstallation;
 
-  private onStoreInstallation: (args: StoreInstallationStoreCallbackArgs<M>) => Promise<void>;
+  private onStoreInstallation: (args: StoreInstallationCallbackArgs<M>) => Promise<void>;
 
-  private onFetchInstallation: (args: FetchInstallationStoreCallbackArgs<M>) => Promise<void>;
+  private onFetchInstallation: (args: FetchInstallationCallbackArgs<M>) => Promise<void>;
 
-  private onDeleteInstallation: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
+  private onDeleteInstallation: (args: DeleteInstallationCallbackArgs) => Promise<void>;
 
   public constructor(options: SequelizeInstallationStoreArgs<M>) {
     this.sequelize = options.sequelize;

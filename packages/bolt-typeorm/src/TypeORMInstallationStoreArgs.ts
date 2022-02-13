@@ -1,7 +1,7 @@
 import { Logger } from '@slack/logger';
 import { Connection, EntityTarget } from 'typeorm';
 import InstallationEntity from './InstallationEntity';
-import { DeleteInstallationStoreCallbackArgs, FetchInstallationStoreCallbackArgs, StoreInstallationStoreCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
+import { DeleteInstallationCallbackArgs, FetchInstallationCallbackArgs, StoreInstallationCallbackArgs } from './TypeORMInstallationStoreCallbackArgs';
 
 export default interface TypeORMInstallationStoreArgs<E extends InstallationEntity> {
   /**
@@ -47,20 +47,20 @@ export default interface TypeORMInstallationStoreArgs<E extends InstallationEnti
   /**
    * Callback for #storeInstallation()
    */
-  onStoreInstallation?: (args: StoreInstallationStoreCallbackArgs<E>) => Promise<void>;
+  onStoreInstallation?: (args: StoreInstallationCallbackArgs<E>) => Promise<void>;
 
   /**
    * Callback for #fetchInstallation()
    */
-  onFetchInstallation?: (args: FetchInstallationStoreCallbackArgs<E>) => Promise<void>;
+  onFetchInstallation?: (args: FetchInstallationCallbackArgs<E>) => Promise<void>;
 
   /**
    * Callback for #deleteInstallation()
    */
-  onDeleteInstallation?: (args: DeleteInstallationStoreCallbackArgs) => Promise<void>;
+  onDeleteInstallation?: (args: DeleteInstallationCallbackArgs) => Promise<void>;
 
   /**
-   * Logger for the internal logs.
+   * Logger for this module's internal logs.
    */
   logger?: Logger;
 }
