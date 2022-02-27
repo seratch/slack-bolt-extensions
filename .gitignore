@@ -15,3 +15,7 @@ coverage/
 .idea/
 
 *.sqlite
+
+tmp/
+
+lerna-debug.log

@@ -9,7 +9,7 @@ function buildSettings(name) {
     database: ":memory:",
     synchronize: true,
     keepConnectionAlive: true,
-    logging: true,
+    // logging: true,
     entities: ["src/entity/**/*.ts"],
     migrations: ["src/migration/**/*.ts"],
     cli: {

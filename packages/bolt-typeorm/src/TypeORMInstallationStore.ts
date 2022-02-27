@@ -116,63 +116,41 @@ export default class TypeORMInstallationStore<E extends InstallationEntity> impl
     query: InstallationQuery<boolean>,
     logger?: Logger,
   ): Promise<Installation<'v1' | 'v2', boolean>> {
-    const { enterpriseId, teamId, userId } = query;
+    const { enterpriseId, teamId, userId, isEnterpriseInstall } = query;
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#fetchInstallation starts ${commonLogPart}`);
 
-    const row = await this.findRow(query);
-    if (row) {
-      const installation: Installation = {
-        team: row.teamId ?
-          {
-            id: row.teamId,
-            name: row.teamName,
-          } :
-          undefined,
-        enterprise: row.enterpriseId ?
-          {
-            id: row.enterpriseId,
-            name: row.enterpriseName,
-          } :
-          undefined,
-        enterpriseUrl: row.enterpriseUrl,
-        user: {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: row.userId!,
-          token: row.userToken,
-          refreshToken: row.userRefreshToken,
-          expiresAt: row.userTokenExpiresAt ? Math.floor(row.userTokenExpiresAt.getTime() / 1000) : undefined,
-          scopes: row.userScopes?.split(','),
-        },
-        bot:
-          row.botId && row.botUserId && row.botToken ?
-            {
-              id: row.botId,
-              userId: row.botUserId,
-              token: row.botToken,
-              refreshToken: row.botRefreshToken,
-              expiresAt: row.botTokenExpiresAt ? Math.floor(row.botTokenExpiresAt.getTime() / 1000) : undefined,
-              scopes: row.botScopes?.split(',') || [],
-            } :
-            undefined,
-        incomingWebhook: row.incomingWebhookUrl ?
-          {
-            url: row.incomingWebhookUrl,
-            channel: row.incomingWebhookChannel,
-            channelId: row.incomingWebhookChannelId,
-            configurationUrl: row.incomingWebhookConfigurationUrl,
-          } :
-          undefined,
-        appId: row.appId,
-        // TODO: `as 'bot'` is a workaround; user type is not yet supported in TS
-        tokenType: row.tokenType === undefined ? 'bot' : row.tokenType as 'bot',
-        isEnterpriseInstall: row.isEnterpriseInstall,
-        authVersion: 'v2', // This module does not support v1 installations
-      };
+    const botQuery: InstallationQuery<boolean> = {
+      enterpriseId,
+      teamId,
+      isEnterpriseInstall,
+    };
+    let installation: Installation | undefined;
+
+    let mergedRow;
+    const botRow = await this.findRow(botQuery);
+    if (botRow) {
+      installation = buildInstallationFromRow(botRow);
+    }
+    if (botRow?.userId !== query.userId) {
+      delete botRow?.userRefreshToken;
+      delete botRow?.userScopes;
+      delete botRow?.userToken;
+      delete botRow?.userTokenExpiresAt;
+
+      const userRow = await this.findRow(query);
+      if (userRow) {
+        mergedRow = Object.assign(userRow, botRow);
+        installation = buildInstallationFromRow(userRow);
+      }
+    } else {
+      mergedRow = botRow;
+    }
+    if (installation) {
       await this.onFetchInstallation({
         query,
         installation,
-        entity: row as E,
+        entity: mergedRow as E,
         logger: this.logger,
       });
       return installation;
@@ -319,4 +297,54 @@ export default class TypeORMInstallationStore<E extends InstallationEntity> impl
     }
     return selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC').getOne();
   }
+}
+
+function buildInstallationFromRow(row: InstallationEntity): Installation | undefined {
+  return {
+    team: row.teamId ?
+      {
+        id: row.teamId,
+        name: row.teamName,
+      } :
+      undefined,
+    enterprise: row.enterpriseId ?
+      {
+        id: row.enterpriseId,
+        name: row.enterpriseName,
+      } :
+      undefined,
+    enterpriseUrl: row.enterpriseUrl,
+    user: {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      id: row.userId!,
+      token: row.userToken,
+      refreshToken: row.userRefreshToken,
+      expiresAt: row.userTokenExpiresAt ? Math.floor(row.userTokenExpiresAt.getTime() / 1000) : undefined,
+      scopes: row.userScopes?.split(','),
+    },
+    bot:
+    row.botId && row.botUserId && row.botToken ?
+      {
+        id: row.botId,
+        userId: row.botUserId,
+        token: row.botToken,
+        refreshToken: row.botRefreshToken,
+        expiresAt: row.botTokenExpiresAt ? Math.floor(row.botTokenExpiresAt.getTime() / 1000) : undefined,
+        scopes: row.botScopes?.split(',') || [],
+      } :
+      undefined,
+    incomingWebhook: row.incomingWebhookUrl ?
+      {
+        url: row.incomingWebhookUrl,
+        channel: row.incomingWebhookChannel,
+        channelId: row.incomingWebhookChannelId,
+        configurationUrl: row.incomingWebhookConfigurationUrl,
+      } :
+      undefined,
+    appId: row.appId,
+    // TODO: `as 'bot'` is a workaround; user type is not yet supported in TS
+    tokenType: row.tokenType === undefined ? 'bot' : row.tokenType as 'bot',
+    isEnterpriseInstall: row.isEnterpriseInstall,
+    authVersion: 'v2', // This module does not support v1 installations
+  };
 }
