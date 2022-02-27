@@ -19,7 +19,8 @@
     "url": "git+https://github.com/seratch/slack-bolt-extensions.git"
   },
   "keywords": [
-    "Sequelize",
+    "Mongoose",
+    "MongoDB",
     "OAuth",
     "Bolt",
     "Slack",
@@ -40,6 +41,7 @@
     "mongoose": "^6.2.1"
   },
   "devDependencies": {
+    "bolt-installation-store-test-kit": "file:../bolt-installation-store-test-kit",
     "mongodb-memory-server": "^8.3.0"
   }
 }

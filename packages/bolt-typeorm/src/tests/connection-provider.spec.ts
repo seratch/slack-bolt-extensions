@@ -2,15 +2,15 @@
 /* eslint-disable import/extensions */
 
 import { Installation } from '@slack/oauth';
-import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { assert } from 'chai';
 import { createConnection } from 'typeorm';
+import { noopLogger } from 'bolt-installation-store-test-kit';
 import { TypeORMInstallationStore } from '../index';
 import SlackAppInstallation from '../entity/SlackAppInstallation';
 import { buildTeamInstallation } from './test-data';
 
-const logger = new ConsoleLogger();
-logger.setLevel(LogLevel.DEBUG);
+const logger = noopLogger;
+
 const tokenExpiresAt = new Date().getTime();
 const inputInstallation = buildTeamInstallation(tokenExpiresAt);
 

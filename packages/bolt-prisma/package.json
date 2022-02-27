@@ -20,7 +20,13 @@
         "url": "git+https://github.com/seratch/slack-bolt-extensions.git"
     },
     "keywords": [
-        "Slack"
+        "Prisma",
+        "OAuth",
+        "Bolt",
+        "Slack",
+        "Slack Platform",
+        "Slack Bot",
+        "Slack API"
     ],
     "author": "Kazuhiro Sera",
     "license": "MIT",
@@ -35,6 +41,7 @@
         "@types/node": "^17.0.16"
     },
     "devDependencies": {
+        "bolt-installation-store-test-kit": "file:../bolt-installation-store-test-kit",
         "prisma": "^3.9.2"
     }
 }

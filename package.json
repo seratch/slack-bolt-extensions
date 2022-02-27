@@ -4,7 +4,8 @@
   "description": "Bolt for JavaScript Extensions",
   "main": "index.js",
   "scripts": {
-    "test": "npx lerna bootstrap && npx lerna run test"
+    "bootstrap": "npm i && npx lerna bootstrap",
+    "test": "npm run bootstrap && npx lerna run test"
   },
   "repository": {
     "type": "git",
