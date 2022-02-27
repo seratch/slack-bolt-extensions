@@ -17,9 +17,10 @@ describe('Team-level installation', async () => {
     });
   }));
 
-  afterEach(() => {
+  afterEach(() => new Promise((resolve) => {
+    resolve({});
     connection.close(); // Promise call occassionally fails
-  });
+  }));
 
   it('saves and finds an installation', async () => {
     const testRunner = new InstallationStoreChaiTestRunner({
