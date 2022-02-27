@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "bootstrap": "npm i && npx lerna bootstrap",
-    "release": "nnpm run bootstrap && npx lerna publish",
+    "release": "npm run bootstrap && npx lerna publish",
     "test": "npm run bootstrap && npx lerna run test"
   },
   "repository": {
