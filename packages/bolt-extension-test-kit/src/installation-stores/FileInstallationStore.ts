@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { homedir } from 'os';
-import { Installation, InstallationStore, InstallationQuery } from '@slack/oauth';
+import {
+  Installation,
+  InstallationStore,
+  InstallationQuery,
+} from '@slack/oauth';
 import { Logger } from '@slack/logger';
 
 export interface FileInstallationOptions {
@@ -24,14 +28,25 @@ export class FileInstallationStore implements InstallationStore {
     this.historicalDataEnabled = historicalDataEnabled;
   }
 
-  public async storeInstallation(installation: Installation, logger?: Logger): Promise<void> {
+  public async storeInstallation(
+    installation: Installation,
+    logger?: Logger,
+  ): Promise<void> {
     const { enterprise, team, user } = installation;
     const installationData = JSON.stringify(installation);
     const installationDir = this.getInstallationDir(enterprise?.id, team?.id);
 
     if (logger !== undefined) {
-      logger.info(`Storing installation in ${installationDir} for ${JSON.stringify({ enterprise, team, user })}`);
-      logger.warn('FileInstallationStore is not intended for production purposes.');
+      logger.info(
+        `Storing installation in ${installationDir} for ${JSON.stringify({
+          enterprise,
+          team,
+          user,
+        })}`,
+      );
+      logger.warn(
+        'FileInstallationStore is not intended for production purposes.',
+      );
     }
 
     // Create Installation Directory
@@ -39,42 +54,71 @@ export class FileInstallationStore implements InstallationStore {
 
     try {
       writeToFile(`${installationDir}/app-latest`, installationData);
-      writeToFile(`${installationDir}/user-${user.id}-latest`, installationData);
+      writeToFile(
+        `${installationDir}/user-${user.id}-latest`,
+        installationData,
+      );
 
       if (this.historicalDataEnabled) {
         const currentUTC = Date.now();
         writeToFile(`${installationDir}/app-${currentUTC}`, installationData);
-        writeToFile(`${installationDir}/user-${user.id}-${currentUTC}`, installationData);
+        writeToFile(
+          `${installationDir}/user-${user.id}-${currentUTC}`,
+          installationData,
+        );
       }
     } catch (err) {
-      throw new Error(`Failed to save installation to FileInstallationStore (error: ${err})`);
+      throw new Error(
+        `Failed to save installation to FileInstallationStore (error: ${err})`,
+      );
     }
   }
 
-  public async fetchInstallation(query: InstallationQuery<boolean>, logger?: Logger): Promise<Installation> {
+  public async fetchInstallation(
+    query: InstallationQuery<boolean>,
+    logger?: Logger,
+  ): Promise<Installation> {
     const { enterpriseId, teamId, isEnterpriseInstall } = query;
-    const installationDir = this.getInstallationDir(enterpriseId, teamId, isEnterpriseInstall);
+    const installationDir = this.getInstallationDir(
+      enterpriseId,
+      teamId,
+      isEnterpriseInstall,
+    );
 
     if (logger !== undefined) {
-      logger.info(`Retrieving installation from ${installationDir} with the following query: ${JSON.stringify(query)}`);
+      logger.info(
+        `Retrieving installation from ${installationDir} with the following query: ${JSON.stringify(
+          query,
+        )}`,
+      );
     }
 
     if (isEnterpriseInstall && enterpriseId === undefined) {
-      throw new Error('enterpriseId is required to fetch data of an enterprise installation');
+      throw new Error(
+        'enterpriseId is required to fetch data of an enterprise installation',
+      );
     }
 
     try {
-      const data = fs.readFileSync(path.resolve(`${installationDir}/app-latest`));
+      const data = fs.readFileSync(
+        path.resolve(`${installationDir}/app-latest`),
+      );
       const installation: Installation = JSON.parse(data.toString());
       if (query.userId && installation.user.id !== query.userId) {
         try {
-          const userData = fs.readFileSync(path.resolve(`${installationDir}/user-${query.userId}-latest`));
+          const userData = fs.readFileSync(
+            path.resolve(`${installationDir}/user-${query.userId}-latest`),
+          );
           if (userData !== undefined && userData !== null) {
-            const userInstallation: Installation = JSON.parse(userData.toString());
+            const userInstallation: Installation = JSON.parse(
+              userData.toString(),
+            );
             installation.user = userInstallation.user;
           }
         } catch (err) {
-          logger?.debug(`The user-token installation for the request user (user_id: ${query.userId}) was not found.`);
+          logger?.debug(
+            `The user-token installation for the request user (user_id: ${query.userId}) was not found.`,
+          );
           delete installation.user.token;
           delete installation.user.refreshToken;
           delete installation.user.expiresAt;
@@ -83,16 +127,25 @@ export class FileInstallationStore implements InstallationStore {
       }
       return installation;
     } catch (err) {
-      throw new Error(`No installation data found (enterprise_id: ${query.enterpriseId}, team_id: ${query.teamId}, user_id: ${query.userId})`);
+      throw new Error(
+        `No installation data found (enterprise_id: ${query.enterpriseId}, team_id: ${query.teamId}, user_id: ${query.userId})`,
+      );
     }
   }
 
-  public async deleteInstallation(query: InstallationQuery<boolean>, logger?: Logger): Promise<void> {
+  public async deleteInstallation(
+    query: InstallationQuery<boolean>,
+    logger?: Logger,
+  ): Promise<void> {
     const { enterpriseId, teamId, userId } = query;
     const installationDir = this.getInstallationDir(enterpriseId, teamId);
 
     if (logger !== undefined) {
-      logger.info(`Deleting installations in ${installationDir} with the following query: ${JSON.stringify(query)}`);
+      logger.info(
+        `Deleting installations in ${installationDir} with the following query: ${JSON.stringify(
+          query,
+        )}`,
+      );
     }
 
     let filesToDelete: string[] = [];
@@ -101,7 +154,9 @@ export class FileInstallationStore implements InstallationStore {
       const allFiles = fs.readdirSync(installationDir);
       filesToDelete = filesToDelete.concat(allFiles);
     } else {
-      const userFiles = fs.readdirSync(installationDir).filter((file) => file.includes(`user-${userId}-`));
+      const userFiles = fs
+        .readdirSync(installationDir)
+        .filter((file) => file.includes(`user-${userId}-`));
       filesToDelete = filesToDelete.concat(userFiles);
     }
 
@@ -109,15 +164,21 @@ export class FileInstallationStore implements InstallationStore {
       try {
         deleteFile(path.resolve(`${installationDir}/${filePath}`));
       } catch (err) {
-        logger?.error(`Failed to delete installation from FileInstallationStore (error: ${err})`);
+        logger?.error(
+          `Failed to delete installation from FileInstallationStore (error: ${err})`,
+        );
       }
     });
   }
 
-  private getInstallationDir(enterpriseId = '', teamId = '', isEnterpriseInstall = false): string {
+  private getInstallationDir(
+    enterpriseId = '',
+    teamId = '',
+    isEnterpriseInstall = false,
+  ): string {
     let installDir = `${this.baseDir}/${enterpriseId}`;
     if (teamId !== '' && !isEnterpriseInstall) {
-      installDir += (enterpriseId !== '') ? `-${teamId}` : `${teamId}`;
+      installDir += enterpriseId !== '' ? `-${teamId}` : `${teamId}`;
     }
     return installDir;
   }

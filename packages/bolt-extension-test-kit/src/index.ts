@@ -1,3 +1,11 @@
 export { noopLogger } from './noopLogger';
-export { InstallationStoreChaiTestRunner, InstallationStoreChaiTestRunnerArgs } from './InstallationStoreChaiTestRunner';
-export { TestInstallationDataProvider, DefaultTestInstallationDataProvider } from './TestInstallationDataProvider';
+export {
+  InstallationStoreChaiTestRunner,
+  InstallationStoreChaiTestRunnerArgs,
+  TestInstallationDataProvider,
+  DefaultTestInstallationDataProvider,
+} from './installation-stores';
+export {
+  StateStoreChaiTestRunner,
+  StateStoreChaiTestRunnerArgs,
+} from './state-stores';

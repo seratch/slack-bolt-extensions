@@ -4,7 +4,7 @@
 import { Logger } from '@slack/logger';
 import { Installation, InstallationStore } from '@slack/oauth';
 import { assert } from 'chai';
-import { noopLogger } from './noopLogger';
+import { noopLogger } from '../noopLogger';
 import {
   DefaultTestInstallationDataProvider,
   TestInstallationDataProvider,
@@ -70,7 +70,9 @@ export class InstallationStoreChaiTestRunner {
 
     try {
       const tokenExpiresAt = Math.floor(new Date().getTime() / 1000);
-      const inputInstallation = this.testInstallatioDataProvider.buildOrgWideInstallation(tokenExpiresAt);
+      const inputInstallation = this.testInstallatioDataProvider.buildOrgWideInstallation(
+        tokenExpiresAt,
+      );
       try {
         await this.installationStore.storeInstallation(
           inputInstallation,
@@ -169,10 +171,16 @@ export class InstallationStoreChaiTestRunner {
             tokenExpiresAt,
           );
 
-          await this.installationStore.deleteInstallation(botQuery, this.logger);
+          await this.installationStore.deleteInstallation(
+            botQuery,
+            this.logger,
+          );
 
           try {
-            await this.installationStore.fetchInstallation(botQuery, this.logger);
+            await this.installationStore.fetchInstallation(
+              botQuery,
+              this.logger,
+            );
             assert.fail('Exception should be thrown here');
           } catch (e: any) {
             assert.equal(
@@ -230,7 +238,10 @@ export class InstallationStoreChaiTestRunner {
           );
         }
         try {
-          await this.installationStore.fetchInstallation(user1Query, this.logger);
+          await this.installationStore.fetchInstallation(
+            user1Query,
+            this.logger,
+          );
           assert.fail('Exception should be thrown here');
         } catch (e: any) {
           assert.equal(
@@ -390,10 +401,16 @@ export class InstallationStoreChaiTestRunner {
             tokenExpiresAt,
           );
 
-          await this.installationStore.deleteInstallation(botQuery, this.logger);
+          await this.installationStore.deleteInstallation(
+            botQuery,
+            this.logger,
+          );
 
           try {
-            await this.installationStore.fetchInstallation(botQuery, this.logger);
+            await this.installationStore.fetchInstallation(
+              botQuery,
+              this.logger,
+            );
             assert.fail('Exception should be thrown here');
           } catch (e: any) {
             assert.equal(
@@ -451,7 +468,10 @@ export class InstallationStoreChaiTestRunner {
           );
         }
         try {
-          await this.installationStore.fetchInstallation(user1Query, this.logger);
+          await this.installationStore.fetchInstallation(
+            user1Query,
+            this.logger,
+          );
           assert.fail('Exception should be thrown here');
         } catch (e: any) {
           assert.equal(

@@ -1,6 +1,8 @@
 node_modules/
 dist/tests/
-dist/FileInstallationStore*
+dist/state-stores/ClearStateStore*
+dist/state-stores/FileStateStore*
+dist/installation-stores/FileInstallationStore*
 coverage/
 build/
 ormconfig.*
