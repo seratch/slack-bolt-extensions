@@ -41,7 +41,7 @@
     "mongoose": "^6.2.1"
   },
   "devDependencies": {
-    "bolt-installation-store-test-kit": "file:../bolt-installation-store-test-kit",
+    "bolt-extension-test-kit": "file:../bolt-extension-test-kit",
     "mongodb-memory-server": "^8.3.0"
   }
 }

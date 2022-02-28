@@ -3,7 +3,7 @@
 /* eslint-disable import/extensions */
 
 import { Prisma, PrismaClient } from '@prisma/client';
-import { InstallationStoreChaiTestRunner } from 'bolt-installation-store-test-kit';
+import { InstallationStoreChaiTestRunner } from 'bolt-extension-test-kit';
 import { PrismaInstallationStore } from '../index';
 
 const log: (Prisma.LogLevel | Prisma.LogDefinition)[] = [

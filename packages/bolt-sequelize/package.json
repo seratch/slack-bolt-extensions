@@ -40,6 +40,6 @@
     "sequelize": "^6.16.1"
   },
   "devDependencies": {
-    "bolt-installation-store-test-kit": "file:../bolt-installation-store-test-kit"
+    "bolt-extension-test-kit": "file:../bolt-extension-test-kit"
   }
 }

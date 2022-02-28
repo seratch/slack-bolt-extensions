@@ -40,7 +40,7 @@
     "typeorm": "^0.2.41"
   },
   "devDependencies": {
-    "bolt-installation-store-test-kit": "file:../bolt-installation-store-test-kit",
+    "bolt-extension-test-kit": "file:../bolt-extension-test-kit",
     "typeorm-naming-strategies": "^2.0.0"
   }
 }

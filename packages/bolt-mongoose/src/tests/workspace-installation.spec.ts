@@ -4,7 +4,7 @@
 
 import { Mongoose } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { InstallationStoreChaiTestRunner } from 'bolt-installation-store-test-kit';
+import { InstallationStoreChaiTestRunner } from 'bolt-extension-test-kit';
 import { MongooseInstallationStore } from '../index';
 
 const debug = false;

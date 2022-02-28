@@ -3,7 +3,7 @@
 /* eslint-disable import/extensions */
 
 import { Sequelize } from 'sequelize';
-import { InstallationStoreChaiTestRunner } from 'bolt-installation-store-test-kit';
+import { InstallationStoreChaiTestRunner } from 'bolt-extension-test-kit';
 import { SequelizeInstallationStore } from '../index';
 
 // Query logging

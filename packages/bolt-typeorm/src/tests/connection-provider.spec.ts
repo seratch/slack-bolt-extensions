@@ -4,7 +4,7 @@
 import { Installation } from '@slack/oauth';
 import { assert } from 'chai';
 import { createConnection } from 'typeorm';
-import { noopLogger } from 'bolt-installation-store-test-kit';
+import { noopLogger } from 'bolt-extension-test-kit';
 import { TypeORMInstallationStore } from '../index';
 import SlackAppInstallation from '../entity/SlackAppInstallation';
 import { buildTeamInstallation } from './test-data';
