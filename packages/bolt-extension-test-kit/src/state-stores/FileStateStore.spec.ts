@@ -4,7 +4,6 @@ import { StateStoreChaiTestRunner } from './StateStoreChaiTestRunner';
 
 const testRunner = new StateStoreChaiTestRunner({
   stateStore: new FileStateStore({
-    stateSecret: 'secret',
     baseDir: os.tmpdir(),
   }),
 });
