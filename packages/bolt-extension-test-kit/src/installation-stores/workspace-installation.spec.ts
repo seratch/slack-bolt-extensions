@@ -3,7 +3,7 @@
 /* eslint-disable import/extensions */
 
 import os from 'os';
-import { FileInstallationStore } from './FileInstallationStore';
+import { FileInstallationStore } from '@slack/oauth';
 import { InstallationStoreChaiTestRunner } from './InstallationStoreChaiTestRunner';
 
 const tmpDir = os.tmpdir();

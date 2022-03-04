@@ -1,4 +1,4 @@
-import ClearStateStore from './ClearStateStore';
+import { ClearStateStore } from '@slack/oauth';
 import { StateStoreChaiTestRunner } from './StateStoreChaiTestRunner';
 
 const testRunner = new StateStoreChaiTestRunner({

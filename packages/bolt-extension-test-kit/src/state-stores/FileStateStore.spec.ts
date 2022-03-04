@@ -1,5 +1,5 @@
 import os from 'os';
-import FileStateStore from './FileStateStore';
+import { FileStateStore } from '@slack/oauth';
 import { StateStoreChaiTestRunner } from './StateStoreChaiTestRunner';
 
 const testRunner = new StateStoreChaiTestRunner({

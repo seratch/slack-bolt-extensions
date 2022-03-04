@@ -35,7 +35,7 @@
   "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
   "dependencies": {
     "@slack/logger": "^3.0.0",
-    "@slack/oauth": "^2.4.0",
+    "@slack/oauth": "2.5.0-rc.1",
     "@types/node": "^17.0.16",
     "typeorm": "^0.2.41"
   },
