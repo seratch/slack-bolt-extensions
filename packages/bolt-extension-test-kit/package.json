@@ -1,7 +1,7 @@
 {
   "name": "slack-bolt-extension-test-kit",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bolt for JavaScript Installation Store Testing Kit",
   "main": "dist/index.js",
   "scripts": {
