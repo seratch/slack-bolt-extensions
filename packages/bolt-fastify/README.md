@@ -1,4 +1,4 @@
-## Bolt for JavaScript koa Extension
+## Bolt for JavaScript Fastify Extension
 
 ### Getting Started
 
@@ -8,7 +8,7 @@
 
 ```json
 {
-  "name": "bolt-koa-app",
+  "name": "bolt-fastify-app",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -19,9 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.11.0",
-    "@koa/router": "^10.1.1",
-    "slack-bolt-koa": "^0.3.0",
-    "koa": "^2.13.4"
+    "fastify": "^3.27.4",
+    "slack-bolt-fastify": "^0.3.0"
   },
   "devDependencies": {
     "ts-node": "^10.5.0",
@@ -51,10 +50,10 @@ You can use the following App Manifest configuration for setting up a new app!
 
 ```yaml
 display_information:
-  name: koa-oauth-test-app
+  name: fastify-oauth-test-app
 features:
   bot_user:
-    display_name: koa-oauth-test-app
+    display_name: fastify-oauth-test-app
 oauth_config:
   redirect_urls:
     - https://xxx.ngrok.io/slack/oauth_redirect
@@ -72,19 +71,21 @@ settings:
   socket_mode_enabled: true
 ```
 
-##### src/index.ts
+##### src/app.ts
 
 ```typescript
-import Router from '@koa/router';
-import Koa from 'koa';
+import Fastify from 'fastify';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import { KoaRecevier } from 'slack-bolt-koa';
+import { FastifyReceiver } from 'slack-bolt-fastify';
 
-const koa = new Koa();
-const router = new Router();
+const fastify = Fastify({ logger: true });
 
-const receiver = new KoaRecevier({
+fastify.get('/', async (_, res) => {
+  res.redirect('/slack/install');
+});
+
+const receiver = new FastifyReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET!,
   clientId: process.env.SLACK_CLIENT_ID,
   clientSecret: process.env.SLACK_CLIENT_SECRET,
@@ -94,8 +95,7 @@ const receiver = new KoaRecevier({
     directInstall: true,
     stateStore: new FileStateStore({}),
   },
-  koa,
-  router,
+  fastify,
 });
 
 const app = new App({
