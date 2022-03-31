@@ -14,6 +14,7 @@ import {
   InstallProviderOptions,
   InstallURLOptions,
   BufferedIncomingMessage,
+  ReceiverDispatchErrorHandlerArgs,
   ReceiverProcessEventErrorHandlerArgs,
   ReceiverUnhandledRequestHandlerArgs,
 } from '@slack/bolt';
@@ -54,10 +55,11 @@ export interface KoaReceiverOptions {
     request: BufferedIncomingMessage
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => Record<string, any>;
+  dispatchErrorHandler?: (args: ReceiverDispatchErrorHandlerArgs) => Promise<void>;
   processEventErrorHandler?: (
     args: ReceiverProcessEventErrorHandlerArgs
   ) => Promise<boolean>;
-  // NOTE: As we use setTimeout under the hood, this cannot be async
+  // For the compatibility with HTTPResponseAck, this handler is not async
   unhandledRequestHandler?: (args: ReceiverUnhandledRequestHandlerArgs) => void;
   unhandledRequestTimeoutMillis?: number;
 }
@@ -81,6 +83,8 @@ export default class KoaReceiver implements Receiver {
     request: BufferedIncomingMessage
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => Record<string, any>;
+
+  private dispatchErrorHandler: (args: ReceiverDispatchErrorHandlerArgs) => Promise<void>;
 
   private processEventErrorHandler: (args: ReceiverProcessEventErrorHandlerArgs) => Promise<boolean>;
 
@@ -118,6 +122,7 @@ export default class KoaReceiver implements Receiver {
         return defaultLogger;
       })();
     this.processBeforeResponse = options.processBeforeResponse ?? false;
+    this.dispatchErrorHandler = options.dispatchErrorHandler ?? httpFunc.defaultAsyncDispatchErrorHandler;
     this.processEventErrorHandler = options.processEventErrorHandler ?? httpFunc.defaultProcessEventErrorHandler;
     this.unhandledRequestHandler = options.unhandledRequestHandler ?? httpFunc.defaultUnhandledRequestHandler;
 
@@ -173,109 +178,136 @@ export default class KoaReceiver implements Receiver {
       this.installerOptions.redirectUriPath
     ) {
       this.router.get(this.installerOptions.installPath, async (ctx) => {
-        await this.installer?.handleInstallPath(
-          ctx.req,
-          ctx.res,
-          this.installerOptions?.installPathOptions,
-        );
+        try {
+          await this.installer?.handleInstallPath(
+            ctx.req,
+            ctx.res,
+            this.installerOptions?.installPathOptions,
+          );
+        } catch (error) {
+          await this.dispatchErrorHandler({
+            error: error as Error | CodedError,
+            logger: this.logger,
+            request: ctx.req,
+            response: ctx.res,
+          });
+        }
       });
       this.router.get(this.installerOptions.redirectUriPath, async (ctx) => {
-        await this.installer?.handleCallback(
-          ctx.req,
-          ctx.res,
-          this.installerOptions?.callbackOptions,
-        );
+        try {
+          await this.installer?.handleCallback(
+            ctx.req,
+            ctx.res,
+            this.installerOptions?.callbackOptions,
+          );
+        } catch (error) {
+          await this.dispatchErrorHandler({
+            error: error as Error | CodedError,
+            logger: this.logger,
+            request: ctx.req,
+            response: ctx.res,
+          });
+        }
       });
     }
 
     this.router.post(this.path, async (ctx) => {
       const { req, res } = ctx;
-      // Verify authenticity
-      let bufferedReq: BufferedIncomingMessage;
       try {
-        bufferedReq = await httpFunc.parseAndVerifyHTTPRequest(
-          {
-            // If enabled: false, this method returns bufferredReq without verification
-            enabled: this.signatureVerification,
-            signingSecret: await this.signingSecret(),
-          },
-          req,
-        );
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const e = err as any;
-        if (this.signatureVerification) {
-          this.logger.warn(`Failed to parse and verify the request data: ${e.message}`);
-        } else {
-          this.logger.warn(`Failed to parse the request body: ${e.message}`);
+        // Verify authenticity
+        let bufferedReq: BufferedIncomingMessage;
+        try {
+          bufferedReq = await httpFunc.parseAndVerifyHTTPRequest(
+            {
+              // If enabled: false, this method returns bufferredReq without verification
+              enabled: this.signatureVerification,
+              signingSecret: await this.signingSecret(),
+            },
+            req,
+          );
+        } catch (err) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e = err as any;
+          if (this.signatureVerification) {
+            this.logger.warn(`Failed to parse and verify the request data: ${e.message}`);
+          } else {
+            this.logger.warn(`Failed to parse the request body: ${e.message}`);
+          }
+          httpFunc.buildNoBodyResponse(res, 401);
+          return;
         }
-        httpFunc.buildNoBodyResponse(res, 401);
-        return;
-      }
 
-      // Parse request body
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let body: any;
-      try {
-        body = httpFunc.parseHTTPRequestBody(bufferedReq);
-      } catch (err) {
+        // Parse request body
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const e = err as any;
-        this.logger.warn(`Malformed request body: ${e.message}`);
-        httpFunc.buildNoBodyResponse(res, 400);
-        return;
-      }
+        let body: any;
+        try {
+          body = httpFunc.parseHTTPRequestBody(bufferedReq);
+        } catch (err) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e = err as any;
+          this.logger.warn(`Malformed request body: ${e.message}`);
+          httpFunc.buildNoBodyResponse(res, 400);
+          return;
+        }
 
-      // Handle SSL checks
-      if (body.ssl_check) {
-        httpFunc.buildSSLCheckResponse(res);
-        return;
-      }
+        // Handle SSL checks
+        if (body.ssl_check) {
+          httpFunc.buildSSLCheckResponse(res);
+          return;
+        }
 
-      // Handle URL verification
-      if (body.type === 'url_verification') {
-        httpFunc.buildUrlVerificationResponse(res, body);
-        return;
-      }
+        // Handle URL verification
+        if (body.type === 'url_verification') {
+          httpFunc.buildUrlVerificationResponse(res, body);
+          return;
+        }
 
-      const ack = new HTTPResponseAck({
-        logger: this.logger,
-        processBeforeResponse: this.processBeforeResponse,
-        unhandledRequestHandler: this.unhandledRequestHandler,
-        unhandledRequestTimeoutMillis: this.unhandledRequestTimeoutMillis,
-        httpRequest: bufferedReq,
-        httpResponse: res,
-      });
-      // Structure the ReceiverEvent
-      const event: ReceiverEvent = {
-        body,
-        ack: ack.bind(),
-        retryNum: httpFunc.extractRetryNumFromHTTPRequest(req),
-        retryReason: httpFunc.extractRetryReasonFromHTTPRequest(req),
-        customProperties: this.customPropertiesExtractor(bufferedReq),
-      };
+        const ack = new HTTPResponseAck({
+          logger: this.logger,
+          processBeforeResponse: this.processBeforeResponse,
+          unhandledRequestHandler: this.unhandledRequestHandler,
+          unhandledRequestTimeoutMillis: this.unhandledRequestTimeoutMillis,
+          httpRequest: bufferedReq,
+          httpResponse: res,
+        });
+        // Structure the ReceiverEvent
+        const event: ReceiverEvent = {
+          body,
+          ack: ack.bind(),
+          retryNum: httpFunc.extractRetryNumFromHTTPRequest(req),
+          retryReason: httpFunc.extractRetryReasonFromHTTPRequest(req),
+          customProperties: this.customPropertiesExtractor(bufferedReq),
+        };
 
-      // Send the event to the app for processing
-      try {
-        await this.app?.processEvent(event);
-        if (ack.storedResponse !== undefined) {
-          // in the case of processBeforeResponse: true
-          httpFunc.buildContentResponse(res, ack.storedResponse);
-          this.logger.debug('stored response sent');
+        // Send the event to the app for processing
+        try {
+          await this.app?.processEvent(event);
+          if (ack.storedResponse !== undefined) {
+            // in the case of processBeforeResponse: true
+            httpFunc.buildContentResponse(res, ack.storedResponse);
+            this.logger.debug('stored response sent');
+          }
+        } catch (error) {
+          const acknowledgedByHandler = await this.processEventErrorHandler({
+            error: error as Error | CodedError,
+            logger: this.logger,
+            request: req,
+            response: res,
+            storedResponse: ack.storedResponse,
+          });
+          if (acknowledgedByHandler) {
+            // If the value is false, we don't touch the value as a race condition
+            // with ack() call may occur especially when processBeforeResponse: false
+            ack.ack();
+          }
         }
       } catch (error) {
-        const acknowledgedByHandler = await this.processEventErrorHandler({
+        await this.dispatchErrorHandler({
           error: error as Error | CodedError,
           logger: this.logger,
           request: req,
           response: res,
-          storedResponse: ack.storedResponse,
         });
-        if (acknowledgedByHandler) {
-          // If the value is false, we don't touch the value as a race condition
-          // with ack() call may occur especially when processBeforeResponse: false
-          ack.ack();
-        }
       }
     });
   }

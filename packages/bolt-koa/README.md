@@ -1,4 +1,4 @@
-## Bolt for JavaScript Sequelize Extension
+## Bolt for JavaScript koa Extension
 
 ### Getting Started
 
@@ -8,7 +8,7 @@
 
 ```json
 {
-  "name": "bolt-sequelize-app",
+  "name": "bolt-koa-app",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -18,10 +18,10 @@
   "author": "Kazuhiro Sera",
   "license": "MIT",
   "dependencies": {
-    "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.1.0",
-    "sqlite3": "4.2.0",
-    "sequelize": "^6.16.1"
+    "@slack/bolt": "^3.11.0",
+    "@koa/router": "^10.1.1",
+    "slack-bolt-koa": "^0.3.0",
+    "koa": "^2.13.4"
   },
   "devDependencies": {
     "ts-node": "^10.5.0",
@@ -51,10 +51,10 @@ You can use the following App Manifest configuration for setting up a new app!
 
 ```yaml
 display_information:
-  name: sequelize-oauth-test-app
+  name: koa-oauth-test-app
 features:
   bot_user:
-    display_name: sequelize-oauth-test-app
+    display_name: koa-oauth-test-app
 oauth_config:
   redirect_urls:
     - https://xxx.ngrok.io/slack/oauth_redirect
@@ -75,34 +75,32 @@ settings:
 ##### src/index.ts
 
 ```typescript
-import { App } from '@slack/bolt';
-import { ConsoleLogger, LogLevel } from '@slack/logger';
-import { Sequelize } from 'sequelize';
-import { SequelizeInstallationStore } from 'slack-bolt-sequelize';
+import Router from '@koa/router';
+import Koa from 'koa';
+import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
+import { FileStateStore } from '@slack/oauth';
+import { KoaRecevier } from 'slack-bolt-koa';
 
-const logger = new ConsoleLogger();
-logger.setLevel(LogLevel.DEBUG);
+const koa = new Koa();
+const router = new Router();
 
-const sequelize = new Sequelize('sqlite::memory:');
-const installationStore = new SequelizeInstallationStore({
-  sequelize,
+const receiver = new KoaRecevier({
+  signingSecret: process.env.SLACK_SIGNING_SECRET!,
   clientId: process.env.SLACK_CLIENT_ID,
-  logger,
+  clientSecret: process.env.SLACK_CLIENT_SECRET,
+  scopes: ['commands', 'chat:write', 'app_mentions:read'],
+  installationStore: new FileInstallationStore(),
+  installerOptions: {
+    directInstall: true,
+    stateStore: new FileStateStore({}),
+  },
+  koa,
+  router,
 });
 
 const app = new App({
-  socketMode: true,
-  appToken: process.env.SLACK_APP_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  clientId: process.env.SLACK_CLIENT_ID,
-  clientSecret: process.env.SLACK_CLIENT_SECRET,
-  stateSecret: process.env.SLACK_STATE_SECRET,
-  scopes: ['commands', 'chat:write', 'app_mentions:read'],
-  installerOptions: {
-    directInstall: true,
-  },
-  installationStore,
-  logger,
+  logLevel: LogLevel.DEBUG,
+  receiver,
 });
 
 app.event('app_mention', async ({ event, say }) => {
@@ -120,9 +118,52 @@ app.event('app_mention', async ({ event, say }) => {
   });
 });
 
+app.command('/my-command', async ({ ack }) => {
+  await ack('Hi there!');
+});
+
+app.shortcut('my-global-shortcut', async ({ ack, body, client }) => {
+  await ack();
+  await client.views.open({
+    trigger_id: body.trigger_id,
+    view: {
+      type: 'modal',
+      callback_id: 'my-modal',
+      title: {
+        type: 'plain_text',
+        text: 'My App',
+      },
+      submit: {
+        type: 'plain_text',
+        text: 'Submit',
+      },
+      blocks: [
+        {
+          type: 'input',
+          block_id: 'b',
+          element: {
+            type: 'plain_text_input',
+            action_id: 'a',
+          },
+          label: {
+            type: 'plain_text',
+            text: 'Comment',
+          },
+        },
+      ],
+    },
+  });
+});
+
+app.view('my-modal', async ({ view, ack, logger }) => {
+  logger.info(view.state.values);
+  await ack();
+});
+
 (async () => {
   await app.start();
-  logger.info('⚡️ Bolt app is running!');
+  // eslint-disable-next-line no-console
+  console.log('⚡️ Bolt app is running!');
 })();
 ```
 
