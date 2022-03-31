@@ -19,7 +19,6 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.11.0",
-    "@koa/router": "^10.1.1",
     "slack-bolt-http-runner": "^0.3.1"
   },
   "devDependencies": {
