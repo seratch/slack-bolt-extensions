@@ -21,4 +21,4 @@ jobs:
         cache: 'npm'
     - run: npm i
     - name: bolt-extension-test-kit
-      run: cd packages/bolt-extension-test-kit && npm test
+      run: cd packages/bolt-extension-test-kit && npm i && npm test

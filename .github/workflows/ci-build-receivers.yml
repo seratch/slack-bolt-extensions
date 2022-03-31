@@ -21,6 +21,6 @@ jobs:
         cache: 'npm'
     - run: npm i
     - name: bolt-koa
-      run: cd packages/bolt-koa && npm test
+      run: cd packages/bolt-koa && npm i && npm test
     - name: bolt-fastify
-      run: cd packages/bolt-fastify && npm test
+      run: cd packages/bolt-fastify && npm i && npm test

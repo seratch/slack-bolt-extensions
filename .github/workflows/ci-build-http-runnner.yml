@@ -21,4 +21,4 @@ jobs:
         cache: 'npm'
     - run: npm i
     - name: bolt-http-runner
-      run: cd packages/bolt-http-runner && npm test
+      run: cd packages/bolt-http-runner && npm i && npm test

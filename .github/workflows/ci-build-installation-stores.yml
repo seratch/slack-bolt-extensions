@@ -22,10 +22,10 @@ jobs:
     - run: npm i
 
     - name: bolt-mongoose
-      run: cd packages/bolt-mongoose && npm test
+      run: cd packages/bolt-mongoose && npm i && npm test
     - name: bolt-prisma
-      run: cd packages/bolt-prisma && npm test
+      run: cd packages/bolt-prisma && npm i && npm test
     - name: bolt-sequelize
-      run: cd packages/bolt-sequelize && npm test
+      run: cd packages/bolt-sequelize && npm i && npm test
     - name: bolt-typeorm
-      run: cd packages/bolt-typeorm && npm test
+      run: cd packages/bolt-typeorm && npm i && npm test
