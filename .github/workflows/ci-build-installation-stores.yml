@@ -19,7 +19,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-      run: npm i && npx lerna bootstrap
+    - run: npm i
 
     - name: bolt-mongoose
       with:
