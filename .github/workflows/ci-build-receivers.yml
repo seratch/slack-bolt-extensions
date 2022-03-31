@@ -1,4 +1,4 @@
-name: bolt-typeorm CI Build
+name: bolt receivers CI Build
 
 on:
   push:
@@ -14,20 +14,13 @@ jobs:
         node-version: [16.x]
     steps:
     - uses: actions/checkout@v2
-    - name: Bootstrap (${{ matrix.node-version }})
+    - name: Node.js (${{ matrix.node-version }})
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm i
-
     - name: bolt-koa
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
       run: cd packages/bolt-koa && npm test
     - name: bolt-fastify
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
       run: cd packages/bolt-fastify && npm test
