@@ -148,6 +148,8 @@ All the packages in this repository are published in the npm package registry un
 
 #### Run all the unit tests
 
+[![bolt-koa CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml)
+
 [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml)
 
 You can run all the unit tests ysung lerna command:
