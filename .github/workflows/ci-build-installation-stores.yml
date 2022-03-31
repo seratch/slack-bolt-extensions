@@ -1,0 +1,43 @@
+name: bolt installation stores CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Bootstrap (${{ matrix.node-version }})
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+      run: npm i && npx lerna bootstrap
+
+    - name: bolt-mongoose
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+      run: cd packages/bolt-mongoose && npm test
+    - name: bolt-prisma
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+      run: cd packages/bolt-prisma && npm test
+    - name: bolt-sequelize
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+      run: cd packages/bolt-sequelize && npm test
+    - name: bolt-typeorm
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+      run: cd packages/bolt-typeorm && npm test
