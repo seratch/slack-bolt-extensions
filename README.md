@@ -5,7 +5,68 @@
 ⚠️ **Important Notice** ⚠️ 
 > This project is still work in progress, and may have bugs in it. If you would like to immediately reuse the code here for your production apps, please feel free to take any under the MIT license and maintain it on your own.
 
-This project aims to provide the bolt-js `InstallationStore` implementations for widely used database libraries, databases, and cloud services.
+This project aims to provide the following enhancement on top of bolt-js.
+
+* bolt-js `Receiver` implementations built with widely used web frameworks
+* bolt-js `InstallationStore` implementations for widely used database libraries, databases, and cloud services
+
+### Receiver
+
+At this moment, we support the following web frameworks. To learn how to use these `Receiver` in your bolt-js apps, check `src/tests/bolt-example.ts`. You can run the app by `npm run bolt` in each package directory.
+
+* [slack-bolt-koa](packages/bolt-koa) for [Koa](https://koajs.com/)
+* slack-bolt-fastify (_coming soon!_)
+
+For instance, if you go with Prisma, your Bolt app code will look like the one below:
+
+```typescript
+import Router from '@koa/router';
+import Koa from 'koa';
+import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
+import { KoaRecevier } from 'slack-bolt-koa';
+
+const koa = new Koa();
+const router = new Router();
+
+const receiver = new KoaRecevier({
+  signingSecret: process.env.SLACK_SIGNING_SECRET!,
+  clientId: process.env.SLACK_CLIENT_ID,
+  clientSecret: process.env.SLACK_CLIENT_SECRET,
+  scopes: ['commands', 'chat:write', 'app_mentions:read'],
+  installationStore: new FileInstallationStore(),
+  koa,
+  router,
+});
+
+const app = new App({
+  logLevel: LogLevel.DEBUG,
+  receiver,
+});
+
+app.event('app_mention', async ({ event, say }) => {
+  await say({
+    text: `<@${event.user}> Hi there :wave:`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `<@${event.user}> Hi there :wave:`,
+        },
+      },
+    ],
+  });
+});
+
+(async () => {
+  await app.start();
+  console.log('⚡️ Bolt app is running!');
+})();
+```
+
+If you go with any of other packages, just replacing the `Receiver` part works for you.
+
+### InstallationStore
 
 At this moment, we support the following database libraries. To learn how to use these `InstallationStore` in your bolt-js apps, check `src/tests/bolt-example.ts`. You can run the app by `npm run bolt` in each package directory.
 
@@ -13,8 +74,8 @@ At this moment, we support the following database libraries. To learn how to use
 * [slack-bolt-mongoose](packages/bolt-mongoose) for [Mongoose](https://mongoosejs.com/) (MongoDB)
 * [slack-bolt-sequelize](packages/bolt-sequelize) for [Sequelize](https://sequelize.org/) (RDB)
 * [slack-bolt-typeorm](packages/bolt-typeorm) for [TypeROM](https://typeorm.io/) (RDB / MongoDB)
-* bolt-amazon-s3 (_coming soon!_)
-* bolt-aws-dynamodb (_coming soon!_)
+* slack-bolt-amazon-s3 (_coming soon!_)
+* slack-bolt-aws-dynamodb (_coming soon!_)
 
 For instance, if you go with Prisma, your Bolt app code will look like the one below:
 
@@ -69,7 +130,7 @@ app.event('app_mention', async ({ event, say }) => {
 
 If you go with any of other packages, just replacing the `installationStore` part works for you.
 
-### Features
+#### Features
 
 All the packages guarantee they work with great consideration for the following points:
 
