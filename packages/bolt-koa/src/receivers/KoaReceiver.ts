@@ -1,24 +1,68 @@
-import { App, CodedError, ErrorCode, Receiver, ReceiverEvent, ReceiverInconsistentStateError, ReceiverMultipleAckError } from '@slack/bolt';
-import { InstallProvider } from '@slack/oauth';
-import { Logger } from '@slack/logger';
+import { InstallProvider, CallbackOptions, InstallPathOptions } from '@slack/oauth';
+import { ConsoleLogger, LogLevel, Logger } from '@slack/logger';
 import Router from '@koa/router';
 import Koa from 'koa';
-import { Server } from 'http';
-import { InstallerOptions, KoaReceiverOptions } from './KoaReceiverOptions';
+import { Server, createServer } from 'http';
 import {
+  App,
+  CodedError,
+  Receiver,
+  ReceiverEvent,
+  ReceiverInconsistentStateError,
+  HTTPModuleFunctions as httpFunc,
+  HTTPResponseAck,
+  InstallProviderOptions,
+  InstallURLOptions,
   BufferedIncomingMessage,
-  buildContentResponse,
-  buildNoBodyResponse,
-  buildSSLCheckResponse,
-  buildUrlVerificationResponse,
-  extractRetryNumFromHTTPRequest,
-  extractRetryReasonFromHTTPRequest,
-  parseAndVerifyHTTPRequest,
-  parseHTTPRequestBody,
-} from './http-based';
-import { initializeLogger } from './logger-initializer';
+  ReceiverProcessEventErrorHandlerArgs,
+  ReceiverUnhandledRequestHandlerArgs,
+} from '@slack/bolt';
 
-export default class KoaRecevier implements Receiver {
+export interface InstallerOptions {
+  stateStore?: InstallProviderOptions['stateStore']; // default ClearStateStore
+  stateVerification?: InstallProviderOptions['stateVerification']; // defaults true
+  authVersion?: InstallProviderOptions['authVersion']; // default 'v2'
+  metadata?: InstallURLOptions['metadata'];
+  installPath?: string;
+  directInstall?: boolean; // see https://api.slack.com/start/distributing/directory#direct_install
+  renderHtmlForInstallPath?: (url: string) => string;
+  redirectUriPath?: string;
+  installPathOptions?: InstallPathOptions;
+  callbackOptions?: CallbackOptions;
+  userScopes?: InstallURLOptions['userScopes'];
+  clientOptions?: InstallProviderOptions['clientOptions'];
+  authorizationUrl?: InstallProviderOptions['authorizationUrl'];
+}
+
+export interface KoaReceiverOptions {
+  signingSecret: string | (() => PromiseLike<string>);
+  logger?: Logger;
+  logLevel?: LogLevel;
+  path?: string;
+  signatureVerification?: boolean;
+  processBeforeResponse?: boolean;
+  clientId?: string;
+  clientSecret?: string;
+  stateSecret?: InstallProviderOptions['stateSecret']; // required when using default stateStore
+  redirectUri?: string;
+  installationStore?: InstallProviderOptions['installationStore']; // default MemoryInstallationStore
+  scopes?: InstallURLOptions['scopes'];
+  installerOptions?: InstallerOptions;
+  koa?: Koa;
+  router?: Router;
+  customPropertiesExtractor?: (
+    request: BufferedIncomingMessage
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => Record<string, any>;
+  processEventErrorHandler?: (
+    args: ReceiverProcessEventErrorHandlerArgs
+  ) => Promise<boolean>;
+  // NOTE: As we use setTimeout under the hood, this cannot be async
+  unhandledRequestHandler?: (args: ReceiverUnhandledRequestHandlerArgs) => void;
+  unhandledRequestTimeoutMillis?: number;
+}
+
+export default class KoaReceiver implements Receiver {
   private app: App | undefined;
 
   private logger: Logger;
@@ -33,8 +77,14 @@ export default class KoaRecevier implements Receiver {
 
   private unhandledRequestTimeoutMillis: number;
 
+  private customPropertiesExtractor: (
+    request: BufferedIncomingMessage
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private customPropertiesExtractor: (request: BufferedIncomingMessage) => Record<string, any>;
+  ) => Record<string, any>;
+
+  private processEventErrorHandler: (args: ReceiverProcessEventErrorHandlerArgs) => Promise<boolean>;
+
+  private unhandledRequestHandler: (args: ReceiverUnhandledRequestHandlerArgs) => void;
 
   // ----------------------------
 
@@ -52,34 +102,47 @@ export default class KoaRecevier implements Receiver {
     this.signatureVerification = options.signatureVerification ?? true;
     this.signingSecretProvider = options.signingSecret;
     this.customPropertiesExtractor = options.customPropertiesExtractor !== undefined ?
-      options.customPropertiesExtractor : (_) => ({});
+      options.customPropertiesExtractor :
+      (_) => ({});
     this.path = options.path ?? '/slack/events';
     this.unhandledRequestTimeoutMillis = options.unhandledRequestTimeoutMillis ?? 3001;
 
-    this.koa = options.koa;
-    this.router = options.router;
-    this.logger = initializeLogger(options.logger, options.logLevel);
+    this.koa = options.koa ?? new Koa();
+    this.router = options.router ?? new Router();
+    this.logger = options.logger ??
+      (() => {
+        const defaultLogger = new ConsoleLogger();
+        if (options.logLevel) {
+          defaultLogger.setLevel(options.logLevel);
+        }
+        return defaultLogger;
+      })();
     this.processBeforeResponse = options.processBeforeResponse ?? false;
+    this.processEventErrorHandler = options.processEventErrorHandler ?? httpFunc.defaultProcessEventErrorHandler;
+    this.unhandledRequestHandler = options.unhandledRequestHandler ?? httpFunc.defaultUnhandledRequestHandler;
+
     this.installerOptions = options.installerOptions;
-    if (this.installerOptions && this.installerOptions.installPath === undefined) {
+    if (
+      this.installerOptions &&
+      this.installerOptions.installPath === undefined
+    ) {
       this.installerOptions.installPath = '/slack/install';
     }
-    if (this.installerOptions && this.installerOptions.redirectUriPath === undefined) {
+    if (
+      this.installerOptions &&
+      this.installerOptions.redirectUriPath === undefined
+    ) {
       this.installerOptions.redirectUriPath = '/slack/oauth_redirect';
     }
     if (options.clientId && options.clientSecret) {
       this.installer = new InstallProvider({
+        ...this.installerOptions,
         clientId: options.clientId,
         clientSecret: options.clientSecret,
         stateSecret: options.stateSecret,
         installationStore: options.installationStore,
         logger: options.logger,
         logLevel: options.logLevel,
-        stateStore: this.installerOptions?.stateStore,
-        stateVerification: this.installerOptions?.stateVerification,
-        authVersion: this.installerOptions?.authVersion,
-        clientOptions: this.installerOptions?.clientOptions,
-        authorizationUrl: this.installerOptions?.authorizationUrl,
         installUrlOptions: {
           scopes: options.scopes ?? [],
           userScopes: this.installerOptions?.userScopes,
@@ -94,16 +157,21 @@ export default class KoaRecevier implements Receiver {
 
   private async signingSecret(): Promise<string> {
     if (this._sigingSecret === undefined) {
-      this._sigingSecret = typeof this.signingSecretProvider === 'string' ? this.signingSecretProvider : await this.signingSecretProvider();
+      this._sigingSecret = typeof this.signingSecretProvider === 'string' ?
+        this.signingSecretProvider :
+        await this.signingSecretProvider();
     }
     return this._sigingSecret;
   }
 
   public init(app: App): void {
     this.app = app;
-    if (this.installer && this.installerOptions &&
+    if (
+      this.installer &&
+      this.installerOptions &&
       this.installerOptions.installPath &&
-      this.installerOptions.redirectUriPath) {
+      this.installerOptions.redirectUriPath
+    ) {
       this.router.get(this.installerOptions.installPath, async (ctx) => {
         await this.installer?.handleInstallPath(
           ctx.req,
@@ -125,7 +193,7 @@ export default class KoaRecevier implements Receiver {
       // Verify authenticity
       let bufferedReq: BufferedIncomingMessage;
       try {
-        bufferedReq = await parseAndVerifyHTTPRequest(
+        bufferedReq = await httpFunc.parseAndVerifyHTTPRequest(
           {
             // If enabled: false, this method returns bufferredReq without verification
             enabled: this.signatureVerification,
@@ -136,113 +204,111 @@ export default class KoaRecevier implements Receiver {
       } catch (err) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const e = err as any;
-        this.logger.warn(`Request verification failed: ${e.message}`);
-        buildNoBodyResponse(res, 401);
+        if (this.signatureVerification) {
+          this.logger.warn(`Failed to parse and verify the request data: ${e.message}`);
+        } else {
+          this.logger.warn(`Failed to parse the request body: ${e.message}`);
+        }
+        httpFunc.buildNoBodyResponse(res, 401);
         return;
       }
 
       // Parse request body
-      // The object containing the parsed body is not exposed to the caller. It is preferred to reduce mutations to the
-      // req object, so that its as reusable as possible. Later, we should consider adding an option for assigning the
-      // parsed body to `req.body`, as this convention has been established by the popular `body-parser` package.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let body: any;
       try {
-        body = parseHTTPRequestBody(bufferedReq);
+        body = httpFunc.parseHTTPRequestBody(bufferedReq);
       } catch (err) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const e = err as any;
         this.logger.warn(`Malformed request body: ${e.message}`);
-        buildNoBodyResponse(res, 400);
+        httpFunc.buildNoBodyResponse(res, 400);
         return;
       }
 
       // Handle SSL checks
       if (body.ssl_check) {
-        buildSSLCheckResponse(res);
+        httpFunc.buildSSLCheckResponse(res);
         return;
       }
 
       // Handle URL verification
       if (body.type === 'url_verification') {
-        buildUrlVerificationResponse(res, body);
+        httpFunc.buildUrlVerificationResponse(res, body);
         return;
       }
 
-      let isAcknowledged = false;
-      setTimeout(() => {
-        if (!isAcknowledged) {
-          this.logger.error(
-            'An incoming event was not acknowledged within 3 seconds. Ensure that the ack() argument is called in a listener.',
-          );
-        }
-      }, this.unhandledRequestTimeoutMillis);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let storedResponseBody: any;
+      const ack = new HTTPResponseAck({
+        logger: this.logger,
+        processBeforeResponse: this.processBeforeResponse,
+        unhandledRequestHandler: this.unhandledRequestHandler,
+        unhandledRequestTimeoutMillis: this.unhandledRequestTimeoutMillis,
+        httpRequest: bufferedReq,
+        httpResponse: res,
+      });
+      // Structure the ReceiverEvent
       const event: ReceiverEvent = {
         body,
-        ack: async (responseBody) => {
-          this.logger.debug(`ack() call begins (body: ${responseBody})`);
-          if (isAcknowledged) {
-            throw new ReceiverMultipleAckError();
-          }
-          isAcknowledged = true;
-          if (this.processBeforeResponse) {
-            // In the case where processBeforeResponse: true is enabled, we don't send the HTTP response immediately.
-            // We hold off until the listener execution is completed.
-            if (!responseBody) {
-              storedResponseBody = '';
-            } else {
-              storedResponseBody = responseBody;
-            }
-            this.logger.debug(`ack() response stored (body: ${responseBody})`);
-          } else {
-            buildContentResponse(res, responseBody);
-            this.logger.debug(`ack() response sent (body: ${responseBody})`);
-          }
-        },
-        retryNum: extractRetryNumFromHTTPRequest(req),
-        retryReason: extractRetryReasonFromHTTPRequest(req),
+        ack: ack.bind(),
+        retryNum: httpFunc.extractRetryNumFromHTTPRequest(req),
+        retryReason: httpFunc.extractRetryReasonFromHTTPRequest(req),
         customProperties: this.customPropertiesExtractor(bufferedReq),
       };
+
+      // Send the event to the app for processing
       try {
         await this.app?.processEvent(event);
-        if (storedResponseBody !== undefined) {
-          buildContentResponse(res, storedResponseBody);
-          this.logger.debug(`ack() response sent (body: ${storedResponseBody})`);
+        if (ack.storedResponse !== undefined) {
+          // in the case of processBeforeResponse: true
+          httpFunc.buildContentResponse(res, ack.storedResponse);
+          this.logger.debug('stored response sent');
         }
-      } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const e = err as any;
-        if ('code' in e) {
-          // CodedError has code: string
-          const errorCode = (err as CodedError).code;
-          if (errorCode === ErrorCode.AuthorizationError) {
-            // authorize function threw an exception, which means there is no valid installation data
-            buildNoBodyResponse(res, 401);
-            isAcknowledged = true;
-            return;
-          }
+      } catch (error) {
+        const acknowledgedByHandler = await this.processEventErrorHandler({
+          error: error as Error | CodedError,
+          logger: this.logger,
+          request: req,
+          response: res,
+          storedResponse: ack.storedResponse,
+        });
+        if (acknowledgedByHandler) {
+          // If the value is false, we don't touch the value as a race condition
+          // with ack() call may occur especially when processBeforeResponse: false
+          ack.ack();
         }
-        buildNoBodyResponse(res, 500);
-        throw err;
       }
     });
   }
 
   public start(port: number = 3000): Promise<Server> {
     // Enable routes
-    this.koa
-      .use(this.router.routes())
-      .use(this.router.allowedMethods());
+    this.koa.use(this.router.routes()).use(this.router.allowedMethods());
+
+    if (this.server !== undefined) {
+      return Promise.reject(
+        new ReceiverInconsistentStateError('The receiver cannot be started because it was already started.'),
+      );
+    }
 
     return new Promise((resolve, reject) => {
-      try {
-        this.server = this.koa.listen(port);
-        resolve(this.server);
-      } catch (e) {
-        reject(e);
-      }
+      this.server = createServer(this.koa.callback());
+      this.server.on('error', (error) => {
+        if (this.server) {
+          this.server.close();
+        }
+        reject(error);
+      });
+
+      this.server.on('close', () => {
+        this.server = undefined;
+      });
+
+      this.server.listen(port, () => {
+        if (this.server === undefined) {
+          return reject(new ReceiverInconsistentStateError('The HTTP server is unexpectedly missing'));
+        }
+        return resolve(this.server);
+      });
     });
   }
 

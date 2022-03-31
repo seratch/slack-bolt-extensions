@@ -34,9 +34,9 @@
   "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
   "dependencies": {
     "@koa/router": "^10.1.1",
-    "@slack/bolt": "^3.10.0",
+    "@slack/bolt": "^3.11.0",
     "@slack/logger": "^3.0.0",
-    "@slack/oauth": "2.5.0-rc.1",
+    "@slack/oauth": "^2.5.1",
     "@types/node": "^17.0.16",
     "koa": "^2.13.4",
     "sequelize": "^6.16.1"

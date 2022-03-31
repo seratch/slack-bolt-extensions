@@ -1,17 +1,9 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable import/no-internal-modules */
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable import/extensions */
-
 import Router from '@koa/router';
 import Koa from 'koa';
-import { App, FileInstallationStore } from '@slack/bolt';
+import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import { ConsoleLogger, LogLevel } from '@slack/logger';
 import KoaRecevier from '../receivers/KoaReceiver';
 
-const logger = new ConsoleLogger();
-logger.setLevel(LogLevel.DEBUG);
 const koa = new Koa();
 const router = new Router();
 
@@ -32,7 +24,6 @@ const receiver = new KoaRecevier({
 
 const app = new App({
   logLevel: LogLevel.DEBUG,
-  logger,
   receiver,
 });
 
@@ -51,7 +42,50 @@ app.event('app_mention', async ({ event, say }) => {
   });
 });
 
+app.command('/my-command', async ({ ack }) => {
+  await ack('Hi there!');
+});
+
+app.shortcut('my-global-shortcut', async ({ ack, body, client }) => {
+  await ack();
+  await client.views.open({
+    trigger_id: body.trigger_id,
+    view: {
+      type: 'modal',
+      callback_id: 'my-modal',
+      title: {
+        type: 'plain_text',
+        text: 'My App',
+      },
+      submit: {
+        type: 'plain_text',
+        text: 'Submit',
+      },
+      blocks: [
+        {
+          type: 'input',
+          block_id: 'b',
+          element: {
+            type: 'plain_text_input',
+            action_id: 'a',
+          },
+          label: {
+            type: 'plain_text',
+            text: 'Comment',
+          },
+        },
+      ],
+    },
+  });
+});
+
+app.view('my-modal', async ({ view, ack, logger }) => {
+  logger.info(view.state.values);
+  await ack();
+});
+
 (async () => {
   await app.start();
-  logger.info('⚡️ Bolt app is running!');
+  // eslint-disable-next-line no-console
+  console.log('⚡️ Bolt app is running!');
 })();

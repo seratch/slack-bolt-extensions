@@ -1,16 +1,15 @@
-import { InstallProviderOptions, InstallURLOptions } from '@slack/bolt';
-import { CallbackOptions } from '@slack/oauth';
-import { Logger, LogLevel } from '@slack/logger';
-import Koa from 'koa';
-import Router from '@koa/router';
-// TODO: import from @slack/oauth
-import { InstallPathOptions } from './workaround';
 import {
+  InstallProviderOptions,
+  InstallURLOptions,
   BufferedIncomingMessage,
   ReceiverDispatchErrorHandlerArgs,
   ReceiverProcessEventErrorHandlerArgs,
   ReceiverUnhandledRequestHandlerArgs,
-} from './http-based';
+} from '@slack/bolt';
+import { CallbackOptions, InstallPathOptions } from '@slack/oauth';
+import { Logger, LogLevel } from '@slack/logger';
+import Koa from 'koa';
+import Router from '@koa/router';
 
 export interface InstallerOptions {
   stateStore?: InstallProviderOptions['stateStore']; // default ClearStateStore
@@ -42,14 +41,18 @@ export interface KoaReceiverOptions {
   installationStore?: InstallProviderOptions['installationStore']; // default MemoryInstallationStore
   scopes?: InstallURLOptions['scopes'];
   installerOptions?: InstallerOptions;
-  koa: Koa,
-  router: Router,
+  koa: Koa;
+  router: Router;
+  customPropertiesExtractor?: (
+    request: BufferedIncomingMessage
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  customPropertiesExtractor?: (request: BufferedIncomingMessage) => Record<string, any>;
+  ) => Record<string, any>;
   // NOTE: As http.RequestListener is not an async function, this cannot be async
   dispatchErrorHandler?: (args: ReceiverDispatchErrorHandlerArgs) => void;
-  processEventErrorHandler?: (args: ReceiverProcessEventErrorHandlerArgs) => Promise<boolean>;
+  processEventErrorHandler?: (
+    args: ReceiverProcessEventErrorHandlerArgs
+  ) => Promise<boolean>;
   // NOTE: As we use setTimeout under the hood, this cannot be async
   unhandledRequestHandler?: (args: ReceiverUnhandledRequestHandlerArgs) => void;
-  unhandledRequestTimeoutMillis?: number
+  unhandledRequestTimeoutMillis?: number;
 }
