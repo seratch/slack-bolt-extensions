@@ -1,4 +1,4 @@
-name: bolt-koa CI Build
+name: bolt-fastify CI Build
 
 on:
   push:
