@@ -15,7 +15,7 @@ This project aims to provide the following enhancement on top of bolt-js.
 At this moment, we support the following web frameworks. To learn how to use these `Receiver` in your bolt-js apps, check `src/tests/bolt-example.ts`. You can run the app by `npm run bolt` in each package directory.
 
 * [slack-bolt-koa](packages/bolt-koa) for [Koa](https://koajs.com/)
-* slack-bolt-fastify (_coming soon!_)
+* [slack-bolt-fastify](packages/bolt-fastify) for [Fastify](https://www.fastify.io/)
 
 For instance, if you go with Prisma, your Bolt app code will look like the one below:
 
@@ -148,7 +148,7 @@ All the packages in this repository are published in the npm package registry un
 
 #### Run all the unit tests
 
-[![bolt-koa CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml)
+[![bolt-koa CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-koa.yml) [![bolt-fastify CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-fastify.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-fastify.yml)
 
 [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-prisma.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-mongoose.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-sequelize.yml) [![bolt-prisma CI Build](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml/badge.svg)](https://github.com/seratch/slack-bolt-extensions/actions/workflows/ci-build-bolt-typeorm.yml)
 
