@@ -73,7 +73,7 @@ At this moment, we support the following database libraries. To learn how to use
 * [slack-bolt-prisma](packages/bolt-prisma) for [Prisma](https://www.prisma.io/) (RDB / MongoDB)
 * [slack-bolt-mongoose](packages/bolt-mongoose) for [Mongoose](https://mongoosejs.com/) (MongoDB)
 * [slack-bolt-sequelize](packages/bolt-sequelize) for [Sequelize](https://sequelize.org/) (RDB)
-* [slack-bolt-typeorm](packages/bolt-typeorm) for [TypeROM](https://typeorm.io/) (RDB / MongoDB)
+* [slack-bolt-typeorm](packages/bolt-typeorm) for [TypeORM](https://typeorm.io/) (RDB / MongoDB)
 * slack-bolt-amazon-s3 (_coming soon!_)
 * slack-bolt-aws-dynamodb (_coming soon!_)
 
