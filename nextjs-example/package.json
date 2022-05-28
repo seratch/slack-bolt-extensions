@@ -1,0 +1,24 @@
+{
+  "name": "slack-nextjs-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@slack/bolt": "^3.11.1",
+    "next": "12.1.6",
+    "raw-body": "^2.5.1",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "slack-bolt-http-runner": "^0.3.1",
+    "swc": "^1.0.11"
+  },
+  "devDependencies": {
+    "eslint": "8.16.0",
+    "eslint-config-next": "12.1.6"
+  }
+}
