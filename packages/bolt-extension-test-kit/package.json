@@ -1,6 +1,6 @@
 {
   "name": "@seratch_/bolt-extension-test-kit",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Bolt for JavaScript Installation Store Testing Kit",
   "main": "dist/index.js",
   "scripts": {
