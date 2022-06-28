@@ -1,5 +1,5 @@
 {
-    "name": "slack-bolt-prisma",
+    "name": "@seratch_/bolt-prisma",
     "version": "0.3.1",
     "description": "Bolt for JavaScript Installation Store Extension - Prisma",
     "main": "dist/index.js",
@@ -37,7 +37,7 @@
     "dependencies": {
         "@prisma/client": "^3.9.2",
         "@slack/logger": "^3.0.0",
-        "@slack/oauth": "2.5.0-rc.1",
+        "@slack/oauth": "^2.5.3",
         "@types/node": "^17.0.16"
     },
     "devDependencies": {

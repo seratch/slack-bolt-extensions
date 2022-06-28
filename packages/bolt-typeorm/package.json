@@ -1,5 +1,5 @@
 {
-  "name": "slack-bolt-typeorm",
+  "name": "@seratch_/bolt-typeorm",
   "version": "0.3.1",
   "description": "Bolt for JavaScript Installation Store Extension - Sequelize",
   "main": "dist/index.js",

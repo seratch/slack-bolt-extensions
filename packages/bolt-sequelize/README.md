@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-sequelize": "^0.1.0",
+    "@seratch_/bolt-sequelize": "^0.1.0",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },
@@ -78,7 +78,7 @@ settings:
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { Sequelize } from 'sequelize';
-import { SequelizeInstallationStore } from 'slack-bolt-sequelize';
+import { SequelizeInstallationStore } from '@seratch_/bolt-sequelize';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);

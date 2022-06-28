@@ -1,6 +1,6 @@
 import { App, LogLevel, FileInstallationStore } from "@slack/bolt";
 import { FileStateStore } from "@slack/oauth";
-import { AppRunner } from "slack-bolt-http-runner";
+import { AppRunner } from "@seratch_/bolt-http-runner";
 
 export const appRunner = new AppRunner({
   logLevel: LogLevel.DEBUG,

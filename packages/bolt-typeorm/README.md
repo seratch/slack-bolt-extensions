@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-typeorm": "^0.1.0",
+    "@seratch_/bolt-typeorm": "^0.1.0",
     "sqlite3": "4.2.0",
     "typeorm": "^0.2.41",
     "typeorm-naming-strategies": "^2.0.0"
@@ -100,7 +100,7 @@ module.exports = {
 
 ```typescript
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { InstallationEntity } from 'slack-bolt-typeorm';
+import { InstallationEntity } from '@seratch_/bolt-typeorm';
 
 @Entity()
 export default class SlackAppInstallation implements InstallationEntity {
@@ -190,7 +190,7 @@ export default class SlackAppInstallation implements InstallationEntity {
 import { createConnection } from 'typeorm';
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
-import { TypeORMInstallationStore } from 'slack-bolt-typeorm';
+import { TypeORMInstallationStore } from '@seratch_/bolt-typeorm';
 import SlackAppInstallation from './entity/SlackAppInstallation';
 
 const logger = new ConsoleLogger();

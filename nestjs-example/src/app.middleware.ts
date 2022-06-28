@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { AppRunner } from 'slack-bolt-http-runner';
+import { AppRunner } from '@seratch_/bolt-http-runner';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
 

@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-prisma": "^0.1.0",
+    "@seratch_/bolt-prisma": "^0.1.0",
     "sqlite3": "4.2.0",
     "@prisma/client": "^3.9.2"
   },
@@ -132,7 +132,7 @@ npx prisma generate
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { PrismaClient } from '@prisma/client';
-import { PrismaInstallationStore } from 'slack-bolt-prisma';
+import { PrismaInstallationStore } from '@seratch_/bolt-prisma';
 
 const logger = new ConsoleLogger();
 logger.setLevel(LogLevel.DEBUG);

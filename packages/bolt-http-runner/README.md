@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.11.0",
-    "slack-bolt-http-runner": "^0.3.1"
+    "@seratch_/bolt-http-runner": "^1.0.0"
   },
   "devDependencies": {
     "ts-node": "^10.5.0",
@@ -77,7 +77,7 @@ import http, { IncomingMessage, ServerResponse } from 'http';
 import { URL } from 'url';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import { AppRunner } from 'slack-bolt-http-runner';
+import { AppRunner } from '@seratch_/bolt-http-runner';
 
 const runner = new AppRunner({
   logLevel: LogLevel.DEBUG,

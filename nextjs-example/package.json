@@ -14,7 +14,7 @@
     "raw-body": "^2.5.1",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "slack-bolt-http-runner": "^0.3.1",
+    "@seratch_/bolt-http-runner": "^1.0.0",
     "swc": "^1.0.11"
   },
   "devDependencies": {

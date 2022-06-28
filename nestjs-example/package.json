@@ -16,7 +16,7 @@
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
-    "slack-bolt-http-runner": "^0.3.1"
+    "@seratch_/bolt-http-runner": "^1.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

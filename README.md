@@ -1,9 +1,6 @@
 ## ⚡ Bolt for JavaScript Extensions (WIP)
 
-[![npm version](https://badge.fury.io/js/slack-bolt-prisma.svg)](https://badge.fury.io/js/slack-bolt-prisma) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-
-⚠️ **Important Notice** ⚠️ 
-> This project is still work in progress, and may have bugs in it. If you would like to immediately reuse the code here for your production apps, please feel free to take any under the MIT license and maintain it on your own.
+[![npm version](https://badge.fury.io/js/@seratch_/bolt-prisma.svg)](https://badge.fury.io/js/@seratch_/bolt-prisma) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
 
 This project aims to provide the following enhancement on top of bolt-js.
 
@@ -14,8 +11,8 @@ This project aims to provide the following enhancement on top of bolt-js.
 
 At this moment, we support the following web frameworks. To learn how to use these `Receiver` in your bolt-js apps, check `src/tests/bolt-example.ts`. You can run the app by `npm run bolt` in each package directory.
 
-* [slack-bolt-koa](packages/bolt-koa) for [Koa](https://koajs.com/)
-* [slack-bolt-fastify](packages/bolt-fastify) for [Fastify](https://www.fastify.io/)
+* [@seratch_/bolt-koa](packages/bolt-koa) for [Koa](https://koajs.com/)
+* [@seratch_/bolt-fastify](packages/bolt-fastify) for [Fastify](https://www.fastify.io/)
 
 For instance, if you go with Prisma, your Bolt app code will look like the one below:
 
@@ -23,7 +20,7 @@ For instance, if you go with Prisma, your Bolt app code will look like the one b
 import Router from '@koa/router';
 import Koa from 'koa';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
-import { KoaRecevier } from 'slack-bolt-koa';
+import { KoaRecevier } from '@seratch_/bolt-koa';
 
 const koa = new Koa();
 const router = new Router();
@@ -70,19 +67,19 @@ If you go with any of other packages, just replacing the `Receiver` part works f
 
 At this moment, we support the following database libraries. To learn how to use these `InstallationStore` in your bolt-js apps, check `src/tests/bolt-example.ts`. You can run the app by `npm run bolt` in each package directory.
 
-* [slack-bolt-prisma](packages/bolt-prisma) for [Prisma](https://www.prisma.io/) (RDB / MongoDB)
-* [slack-bolt-mongoose](packages/bolt-mongoose) for [Mongoose](https://mongoosejs.com/) (MongoDB)
-* [slack-bolt-sequelize](packages/bolt-sequelize) for [Sequelize](https://sequelize.org/) (RDB)
-* [slack-bolt-typeorm](packages/bolt-typeorm) for [TypeORM](https://typeorm.io/) (RDB / MongoDB)
-* slack-bolt-amazon-s3 (_coming soon!_)
-* slack-bolt-aws-dynamodb (_coming soon!_)
+* [@seratch_/bolt-prisma](packages/bolt-prisma) for [Prisma](https://www.prisma.io/) (RDB / MongoDB)
+* [@seratch_/bolt-mongoose](packages/bolt-mongoose) for [Mongoose](https://mongoosejs.com/) (MongoDB)
+* [@seratch_/bolt-sequelize](packages/bolt-sequelize) for [Sequelize](https://sequelize.org/) (RDB)
+* [@seratch_/bolt-typeorm](packages/bolt-typeorm) for [TypeORM](https://typeorm.io/) (RDB / MongoDB)
+* @seratch_/bolt-amazon-s3 (_coming soon!_)
+* @seratch_/bolt-aws-dynamodb (_coming soon!_)
 
 For instance, if you go with Prisma, your Bolt app code will look like the one below:
 
 ```typescript
 import { App } from '@slack/bolt';
 import { PrismaClient } from '@prisma/client';
-import { PrismaInstallationStore } from 'slack-bolt-prisma';
+import { PrismaInstallationStore } from '@seratch_/bolt-prisma';
 
 const prismaClient = new PrismaClient({
   log: [

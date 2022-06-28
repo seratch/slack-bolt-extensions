@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "slack-bolt-mongoose": "^0.1.0",
+    "@seratch_/bolt-mongoose": "^0.1.0",
     "mongoose": "^6.2.1"
   },
   "devDependencies": {
@@ -78,7 +78,7 @@ settings:
 import { App } from '@slack/bolt';
 import { ConsoleLogger, LogLevel } from '@slack/logger';
 import { Mongoose } from 'mongoose';
-import { MongooseInstallationStore } from 'slack-bolt-mongoose';
+import { MongooseInstallationStore } from '@seratch_/bolt-mongoose';
 
 import { MongoMemoryServer } from 'mongodb-memory-server';
 

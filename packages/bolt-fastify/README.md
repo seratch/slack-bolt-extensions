@@ -20,7 +20,7 @@
   "dependencies": {
     "@slack/bolt": "^3.11.0",
     "fastify": "^3.27.4",
-    "slack-bolt-fastify": "^0.3.0"
+    "@seratch_/bolt-fastify": "^0.3.0"
   },
   "devDependencies": {
     "ts-node": "^10.5.0",
@@ -77,7 +77,7 @@ settings:
 import Fastify from 'fastify';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import { FastifyReceiver } from 'slack-bolt-fastify';
+import { FastifyReceiver } from '@seratch_/bolt-fastify';
 
 const fastify = Fastify({ logger: true });
 

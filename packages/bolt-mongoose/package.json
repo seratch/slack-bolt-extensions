@@ -1,5 +1,5 @@
 {
-  "name": "slack-bolt-mongoose",
+  "name": "@seratch_/bolt-mongoose",
   "version": "0.3.1",
   "description": "Bolt for JavaScript Installation Store Extension - Mongoose",
   "main": "dist/index.js",

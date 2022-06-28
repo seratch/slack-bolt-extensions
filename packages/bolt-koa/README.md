@@ -20,7 +20,7 @@
   "dependencies": {
     "@slack/bolt": "^3.11.0",
     "@koa/router": "^10.1.1",
-    "slack-bolt-koa": "^0.3.0",
+    "@seratch_/bolt-koa": "^0.3.0",
     "koa": "^2.13.4"
   },
   "devDependencies": {
@@ -79,7 +79,7 @@ import Router from '@koa/router';
 import Koa from 'koa';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import { KoaRecevier } from 'slack-bolt-koa';
+import { KoaRecevier } from '@seratch_/bolt-koa';
 
 const koa = new Koa();
 const router = new Router();
