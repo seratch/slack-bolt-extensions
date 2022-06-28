@@ -21,6 +21,10 @@
     "url": "https://github.com/seratch/slack-bolt-extensions/issues"
   },
   "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "devDependencies": {
     "@slack/bolt": "^3.11.3",
     "@types/chai": "^4.3.0",
