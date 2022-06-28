@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@slack/bolt": "^3.11.1",
+    "@slack/bolt": "^3.11.3",
     "next": "12.1.6",
     "raw-body": "^2.5.1",
     "react": "18.1.0",

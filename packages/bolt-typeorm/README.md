@@ -18,8 +18,8 @@
   "author": "Kazuhiro Sera",
   "license": "MIT",
   "dependencies": {
-    "@slack/bolt": "^3.9.0",
-    "@seratch_/bolt-typeorm": "^0.1.0",
+    "@slack/bolt": "^3.11.0",
+    "@seratch_/bolt-typeorm": "^1.0.0",
     "sqlite3": "4.2.0",
     "typeorm": "^0.2.41",
     "typeorm-naming-strategies": "^2.0.0"

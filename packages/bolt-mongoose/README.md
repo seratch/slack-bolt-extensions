@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.9.0",
-    "@seratch_/bolt-mongoose": "^0.1.0",
+    "@seratch_/bolt-mongoose": "^1.0.0",
     "mongoose": "^6.2.1"
   },
   "devDependencies": {

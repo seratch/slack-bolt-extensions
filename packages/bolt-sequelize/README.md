@@ -18,8 +18,8 @@
   "author": "Kazuhiro Sera",
   "license": "MIT",
   "dependencies": {
-    "@slack/bolt": "^3.9.0",
-    "@seratch_/bolt-sequelize": "^0.1.0",
+    "@slack/bolt": "^3.11.0",
+    "@seratch_/bolt-sequelize": "^1.0.0",
     "sqlite3": "4.2.0",
     "sequelize": "^6.16.1"
   },

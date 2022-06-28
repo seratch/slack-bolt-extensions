@@ -20,7 +20,7 @@
   "dependencies": {
     "@slack/bolt": "^3.11.0",
     "@koa/router": "^10.1.1",
-    "@seratch_/bolt-koa": "^0.3.0",
+    "@seratch_/bolt-koa": "^1.0.0",
     "koa": "^2.13.4"
   },
   "devDependencies": {

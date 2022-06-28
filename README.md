@@ -1,4 +1,4 @@
-## ⚡ Bolt for JavaScript Extensions (WIP)
+## ⚡ Bolt for JavaScript Extensions
 
 [![npm version](https://badge.fury.io/js/@seratch_/bolt-prisma.svg)](https://badge.fury.io/js/@seratch_/bolt-prisma) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
 

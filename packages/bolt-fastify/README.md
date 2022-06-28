@@ -20,7 +20,7 @@
   "dependencies": {
     "@slack/bolt": "^3.11.0",
     "fastify": "^3.27.4",
-    "@seratch_/bolt-fastify": "^0.3.0"
+    "@seratch_/bolt-fastify": "^1.0.0"
   },
   "devDependencies": {
     "ts-node": "^10.5.0",
