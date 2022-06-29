@@ -1,8 +1,10 @@
-## Bolt for JavaScript TypeORM Extension
+## Bolt for JavaScript: TypeORM InstallationStore
+
+This module provides an `InstallationStore` implementation for [TypeORM](https://typeorm.io/) users.
 
 ### Getting Started
 
-#### Create a new project
+You can create a simple Node app project using the following `package.json` and `tsconfig.json`. Of course, if you would like to use some build tool such as [webpack](https://webpack.js.org/), you can go with your own way and add the necessary dependencies.
 
 ##### package.json
 
@@ -48,7 +50,7 @@
 
 ##### Create a new Slack app at api.slack.com/apps
 
-You can use the following App Manifest configuration for setting up a new app!
+The next step is to create a new Slack app configuration. You can use the following App Manifest configuration data for it.
 
 ```yaml
 display_information:
@@ -73,9 +75,13 @@ settings:
   socket_mode_enabled: true
 ```
 
+### Place your source code in the project
+
+The last step is to add your code in the project and spin up your app. You can use the following code as-is.
+
 ##### ormconfig.js
 
-Just to confirm if the InstallationStore works in your local machine, let's use the following simple TypeORM configuration.
+This file is required for configuring your TypeORM database clients. If you would like to use other database apart from SQLite, you can modify the settings.
 
 ```javascript
 const SnakeNamingStrategy = require("typeorm-naming-strategies").SnakeNamingStrategy;
@@ -240,9 +246,9 @@ app.event('app_mention', async ({ event, say }) => {
 })();
 ```
 
-#### Run the app
+Finally, your app is now available for running! Set all the required env variables, hit `npm start`, and then enable your public URL endpoint (you may want to use some proxy tool such as [ngrok](https://ngrok.com/)).
 
-```
+```bash
 export SLACK_CLIENT_ID=
 export SLACK_CLIENT_SECRET=
 export SLACK_SIGNING_SECRET=
@@ -251,3 +257,5 @@ export SLACK_APP_TOKEN=
 npm start
 # Visit https://{your public domain}/slack/install
 ```
+
+Now you can install the app into your Slack workspace from `https://{your public domain}/slack/install`. Enjoy!
