@@ -35,13 +35,13 @@
     },
     "homepage": "https://github.com/seratch/slack-bolt-extensions#readme",
     "dependencies": {
-        "@prisma/client": "^3.9.2",
+        "@prisma/client": "^3.15.2",
         "@slack/logger": "^3.0.0",
-        "@slack/oauth": "^2.5.3",
-        "@types/node": "^17.0.16"
+        "@slack/oauth": "^2.5.4",
+        "@types/node": "^17.0.45"
     },
     "devDependencies": {
         "bolt-extension-test-kit": "file:../bolt-extension-test-kit",
-        "prisma": "^3.9.2"
+        "prisma": "^3.15.2"
     }
 }
