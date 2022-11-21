@@ -20,7 +20,7 @@ You can create a simple Node app project using the following `package.json` and 
   "author": "Kazuhiro Sera",
   "license": "MIT",
   "dependencies": {
-    "@slack/bolt": "^3.11.0",
+    "@slack/bolt": "^3.12.2",
     "@seratch_/bolt-typeorm": "^1.0.0",
     "sqlite3": "4.2.0",
     "typeorm": "^0.2.41",
