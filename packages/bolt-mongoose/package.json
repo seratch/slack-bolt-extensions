@@ -1,6 +1,6 @@
 {
   "name": "@seratch_/bolt-mongoose",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Bolt for JavaScript Installation Store Extension - Mongoose",
   "main": "dist/index.js",
   "scripts": {

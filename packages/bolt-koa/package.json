@@ -1,6 +1,6 @@
 {
   "name": "@seratch_/bolt-koa",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Bolt for JavaScript Extension - Koa.js",
   "main": "dist/index.js",
   "scripts": {
