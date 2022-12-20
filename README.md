@@ -6,6 +6,7 @@ This project aims to provide the following enhancement on top of bolt-js.
 
 * bolt-js `Receiver` implementations built with widely used web frameworks
 * bolt-js `InstallationStore` implementations for widely used database libraries, databases, and cloud services
+* `bolt-http-runner`, which enables developers to run bolt-js code in Next.js/Nuxt.js apps
 
 ### Receiver
 
