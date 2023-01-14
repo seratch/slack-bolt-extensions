@@ -21,12 +21,12 @@ For instance, if you go with Prisma, your Bolt app code will look like the one b
 import Router from '@koa/router';
 import Koa from 'koa';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
-import { KoaRecevier } from '@seratch_/bolt-koa';
+import { KoaReceiver } from '@seratch_/bolt-koa';
 
 const koa = new Koa();
 const router = new Router();
 
-const receiver = new KoaRecevier({
+const receiver = new KoaReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET!,
   clientId: process.env.SLACK_CLIENT_ID,
   clientSecret: process.env.SLACK_CLIENT_SECRET,

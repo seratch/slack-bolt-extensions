@@ -2,12 +2,12 @@ import Router from '@koa/router';
 import Koa from 'koa';
 import { App, FileInstallationStore, LogLevel } from '@slack/bolt';
 import { FileStateStore } from '@slack/oauth';
-import KoaRecevier from '../receivers/KoaReceiver';
+import KoaReceiver from '../receivers/KoaReceiver';
 
 const koa = new Koa();
 const router = new Router();
 
-const receiver = new KoaRecevier({
+const receiver = new KoaReceiver({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   signingSecret: process.env.SLACK_SIGNING_SECRET!,
   clientId: process.env.SLACK_CLIENT_ID,
