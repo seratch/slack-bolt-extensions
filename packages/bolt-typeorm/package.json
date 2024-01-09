@@ -1,6 +1,6 @@
 {
   "name": "@seratch_/bolt-typeorm",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Bolt for JavaScript Installation Store Extension - Sequelize",
   "main": "dist/index.js",
   "scripts": {
