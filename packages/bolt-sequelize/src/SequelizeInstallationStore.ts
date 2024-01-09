@@ -69,8 +69,6 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#storeInstallation starts ${commonLogPart}`);
 
-    await this.sequelize.sync();
-
     const entity = {
       clientId: this.clientId,
       appId: i.appId,
@@ -138,8 +136,6 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
     const { enterpriseId, teamId, userId } = query;
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#fetchInstallation starts ${commonLogPart}`);
-
-    await this.sequelize.sync();
 
     // If query.userId is present, the latest user associated installation will be fetched
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -239,8 +235,6 @@ export default class SequelizeInstallationStore<M extends SlackAppInstallation> 
     const { enterpriseId, teamId, userId } = query;
     const commonLogPart = `(enterprise_id: ${enterpriseId}, team_id: ${teamId}, user_id: ${userId})`;
     logger?.debug(`#deleteInstallation starts ${commonLogPart}`);
-
-    await this.sequelize.sync();
 
     await this.onDeleteInstallation({
       query,

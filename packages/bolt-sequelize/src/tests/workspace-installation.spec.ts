@@ -29,6 +29,7 @@ describe('Team-level installation', () => {
         historicalDataEnabled: true,
       }),
     });
+    await sequelize.sync();
     await testRunner.runTeamLevelInstallationTestCases();
   });
   it('saves and finds an installation (historical data disabled)', async () => {
@@ -50,6 +51,7 @@ describe('Team-level installation', () => {
         historicalDataEnabled: false,
       }),
     });
+    await sequelize.sync();
     await testRunner.runTeamLevelInstallationTestCases();
   });
 });
