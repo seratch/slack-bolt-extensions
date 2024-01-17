@@ -291,11 +291,15 @@ export default class TypeORMInstallationStore<E extends InstallationEntity> impl
       .setParameters({ enterpriseId, teamId, userId, clientId: this.clientId });
 
     if (this.historicalDataEnabled) {
-      return selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC')
+      const result = await selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC')
         .limit(1)
         .getOne();
+      return result || undefined;
     }
-    return selectQuery.orderBy(`${alias}.${this.sortPropertyName}`, 'DESC').getOne();
+    const result = await selectQuery
+      .orderBy(`${alias}.${this.sortPropertyName}`, 'DESC')
+      .getOne();
+    return result || undefined;
   }
 }
 
